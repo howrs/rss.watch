@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
@@ -21,12 +26,24 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "utils/*": ["utils/*"],
-      "styles/*": ["styles/*"],
-      "app/*": ["app/*"],
-      "components/*": ["components/*"],
-      "lib/*": ["lib/*"],
-      "hooks/*": ["hooks/*"]
+      "utils/*": [
+        "utils/*"
+      ],
+      "styles/*": [
+        "styles/*"
+      ],
+      "app/*": [
+        "app/*"
+      ],
+      "components/*": [
+        "components/*"
+      ],
+      "lib/*": [
+        "lib/*"
+      ],
+      "hooks/*": [
+        "hooks/*"
+      ]
     }
   },
   "include": [
@@ -36,5 +53,7 @@
     ".next/types/**/*.ts",
     "next.config.js"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
