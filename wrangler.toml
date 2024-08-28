@@ -1,7 +1,9 @@
 name = "rss.watch"
+compatibility_date = "2024-05-12"
 compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
 
-[env.production.vars]
+[vars]
 BUN_VERSION = "1.1.27"
 
 [[d1_databases]]
