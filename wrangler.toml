@@ -1,7 +1,7 @@
 name = "rss.watch"
 compatibility_flags = ["nodejs_compat"]
 
-[vars]
+[env.production.vars]
 BUN_VERSION = "1.1.27"
 
 [[d1_databases]]
