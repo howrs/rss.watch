@@ -1,6 +1,9 @@
 name = "rss.watch"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+BUN_VERSION = "1.1.27"
+
 [[d1_databases]]
 binding = "DB"                                       # i.e. available in your Worker on env.DB
 database_name = "rss.watch"
