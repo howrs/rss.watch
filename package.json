@@ -45,5 +45,8 @@
     "taze": "^0.16.7",
     "typescript": "^5.5.4",
     "wrangler": "^3.72.3"
+  },
+  "resolutions": {
+    "string-width": "4.2.3"
   }
 }
