@@ -44,7 +44,7 @@
     "@cloudflare/next-on-pages": "^1.13.2",
     "@cloudflare/workers-types": "^4.20240821.1",
     "@types/ms": "^0.7.34",
-    "@types/node": "^22.5.1",
+    "@types/node": "^22.5.2",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
