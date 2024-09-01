@@ -1,3 +1,4 @@
+import { getRequestContext } from "@cloudflare/next-on-pages"
 import {
   concurrent,
   entries,
@@ -31,7 +32,6 @@ const pushRequest = object({
 
 app.post("/p", async (c) => {
   const { prisma } = db
-  const { waitUntil } = c.executionCtx
 
   const body = await c.req.json()
 
@@ -240,12 +240,10 @@ app.post("/p", async (c) => {
   const HOST = `https://rss-watch-party.howrs.partykit.dev`
   // `http://localhost:1999`
 
-  waitUntil(
-    fetch(`${HOST}/parties/main/${guildId}`, {
-      method: "POST",
-      body: JSON.stringify({ message: "poke" }),
-    }),
-  )
+  void fetch(`${HOST}/parties/main/${guildId}`, {
+    method: "POST",
+    body: JSON.stringify({ message: "poke" }),
+  })
 
   return c.json({
     success: true,
