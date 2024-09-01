@@ -138,7 +138,7 @@ app.post("/p", async (c) => {
     client.lastMutationID = nextMutationID
   }
 
-  await prisma.$transaction([
+  await Promise.all([
     prisma.guild.upsert({
       create: {
         id: guildId,
@@ -211,9 +211,8 @@ app.post("/p", async (c) => {
         },
       }),
     ),
+    poke(guildId),
   ])
-
-  poke(guildId)
 
   return c.json({
     success: true,
