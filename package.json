@@ -11,7 +11,10 @@
     "clean": "rm -rf node_modules .next out bun.lockb",
     "check": "taze major",
     "bump": "taze major -w -i",
-    "add:component": "shadcn-ui add"
+    "add:component": "shadcn-ui add",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev",
+    "deploy": "npm run pages:build && wrangler pages deploy"
   },
   "dependencies": {
     "@fxts/core": "^1.0.1",

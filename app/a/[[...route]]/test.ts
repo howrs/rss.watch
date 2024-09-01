@@ -1,7 +1,8 @@
 import { app } from "app/a/[[...route]]/app.ts"
-import { prisma } from "prisma/db"
+import { db } from "prisma/db"
 
 app.get("/test", async (c) => {
+  const { prisma } = db
   const [guilds, users, clientGroups, channels, clients] =
     await prisma.$transaction([
       prisma.guild.findMany(),
@@ -24,6 +25,7 @@ app.get("/test", async (c) => {
 })
 
 app.get("/clear", async (c) => {
+  const { prisma } = db
   // clear all data
   await prisma.channel.deleteMany()
   await prisma.client.deleteMany()

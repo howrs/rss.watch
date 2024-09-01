@@ -1,3 +1,3 @@
-import { Hono } from 'hono'
+import { Hono } from "hono"
 
-export const app = new Hono().basePath('/a')
+export const app = new Hono().basePath("/a")

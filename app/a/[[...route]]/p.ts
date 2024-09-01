@@ -9,7 +9,8 @@ import {
 } from "@fxts/core"
 import { Prisma } from "@prisma/client"
 import { app } from "app/a/[[...route]]/app.ts"
-import { prisma } from "prisma/db"
+// import { prisma } from "prisma/db"
+import { db } from "prisma/db"
 import { any, array, number, object, parse, string } from "valibot"
 
 const pushRequest = object({
@@ -29,6 +30,7 @@ const pushRequest = object({
 })
 
 app.post("/p", async (c) => {
+  const { prisma } = db
   const body = await c.req.json()
 
   const { profileID, clientGroupID, mutations, pushVersion, guildId } = parse(
@@ -44,32 +46,30 @@ app.post("/p", async (c) => {
     updatedAt: new Date(),
   }
 
-  const [clientG, guild, clients] = await prisma.$transaction(
-    [
-      prisma.clientGroup.findUnique({
+  const guild = await prisma.guild.findUnique({
+    where: {
+      id: guildId,
+    },
+    include: {
+      ClientGroup: {
         where: {
           id: clientGroupID,
         },
-      }),
-      prisma.guild.findUnique({
-        where: {
-          id: guildId,
-        },
-      }),
-      prisma.client.findMany({
-        where: {
-          id: {
-            in: mutations.map((m) => m.clientID),
+        include: {
+          Client: {
+            where: {
+              id: {
+                in: mutations.map((m) => m.clientID),
+              },
+            },
           },
         },
-      }),
-    ],
-    {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
     },
-  )
+  })
 
-  const clientGroup = clientG || defaultClientGroup
+  const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
+  const clients = guild?.ClientGroup[0].Client || []
 
   const indexedClients = pipe(
     clients,
@@ -168,15 +168,8 @@ app.post("/p", async (c) => {
         create: {
           id: clientGroup.id,
           guild: {
-            connectOrCreate: {
-              where: {
-                id: guildId,
-              },
-              create: {
-                id: guildId,
-                name: "test guild",
-                version: nextVersion,
-              },
+            connect: {
+              id: guildId,
             },
           },
           user: {
@@ -193,15 +186,8 @@ app.post("/p", async (c) => {
         },
         update: {
           guild: {
-            connectOrCreate: {
-              where: {
-                id: guildId,
-              },
-              create: {
-                id: guildId,
-                name: "test guild",
-                version: nextVersion,
-              },
+            connect: {
+              id: guildId,
             },
           },
           user: {

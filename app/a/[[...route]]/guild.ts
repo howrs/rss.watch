@@ -1,5 +1,6 @@
 import { app } from "app/a/[[...route]]/app.ts"
-import { prisma } from "prisma/db"
+// import { prisma } from "prisma/db"
+import { db } from "prisma/db"
 import { object, parse, string } from "valibot"
 
 const schema = object({
@@ -7,6 +8,7 @@ const schema = object({
 })
 
 app.post("/guild", async (c) => {
+  const { prisma } = db
   const body = await c.req.json()
 
   const { name } = parse(schema, body)
@@ -25,6 +27,7 @@ app.post("/guild", async (c) => {
 })
 
 app.post("/user", async (c) => {
+  const { prisma } = db
   // const body = await c.req.json()
 
   // const { name } = parse(schema, body)
