@@ -5,7 +5,7 @@ export const runtime = "edge"
 
 import "./l.ts"
 import "./p.ts"
-// import "./guild.ts"
+import "./guild.ts"
 // import "./test.ts"
 
 export const GET = handle(app)
