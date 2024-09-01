@@ -69,7 +69,7 @@ app.post("/p", async (c) => {
   })
 
   const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
-  const clients = guild?.ClientGroup[0].Client || []
+  const clients = guild?.ClientGroup[0]?.Client || []
 
   const indexedClients = pipe(
     clients,
