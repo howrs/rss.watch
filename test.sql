@@ -1,0 +1,71 @@
+PRAGMA defer_foreign_keys=TRUE;
+CREATE TABLE d1_migrations(
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		name       TEXT UNIQUE,
+		applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+INSERT INTO d1_migrations VALUES(1,'0001_init.sql','2024-08-29 17:18:04');
+CREATE TABLE IF NOT EXISTS "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "username" TEXT NOT NULL,
+    "avatar" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE TABLE IF NOT EXISTS "Guild" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE TABLE IF NOT EXISTS "ClientGroup" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "guildId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "ClientGroup_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "ClientGroup_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "Client" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "lastMutationID" INTEGER NOT NULL DEFAULT 0,
+    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "clientGroupId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Client_clientGroupId_fkey" FOREIGN KEY ("clientGroupId") REFERENCES "ClientGroup" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "Channel" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "type" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "position" INTEGER NOT NULL,
+    "parentId" TEXT,
+    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "guildId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Channel_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "Feed" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "value" TEXT NOT NULL,
+    "type" TEXT,
+    "faviconUrl" TEXT,
+    "xmlUrl" TEXT,
+    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "guildId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Feed_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "Sent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+DELETE FROM sqlite_sequence;
+INSERT INTO sqlite_sequence VALUES('d1_migrations',1);

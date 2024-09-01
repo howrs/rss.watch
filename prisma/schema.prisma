@@ -7,3 +7,102 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id String @id
+
+  username String
+  avatar   String?
+
+  ClientGroup ClientGroup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guild {
+  id   String @id
+  name String
+
+  version Int @default(0)
+
+  ClientGroup ClientGroup[]
+  Channel     Channel[]
+  Feed        Feed[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClientGroup {
+  id String @id
+
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  Client Client[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id String @id
+
+  lastMutationID      Int @default(0)
+  lastModifiedVersion Int @default(0)
+
+  // clientGroup
+  clientGroupId String
+  clientGroup   ClientGroup @relation(fields: [clientGroupId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Channel {
+  id String @id
+
+  type     Int
+  name     String
+  position Int
+  parentId String?
+
+  lastModifiedVersion Int     @default(0)
+  deleted             Boolean @default(false)
+
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Feed {
+  id String @id
+
+  value String
+
+  // meta
+  type       String?
+  faviconUrl String?
+  xmlUrl     String?
+
+  lastModifiedVersion Int     @default(0)
+  deleted             Boolean @default(false)
+
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sent {
+  id String @id
+
+  createdAt DateTime @default(now())
+}

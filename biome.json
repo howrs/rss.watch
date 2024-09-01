@@ -7,24 +7,20 @@
       "style": {
         "noUnusedTemplateLiteral": "off",
         "useImportType": "error",
-        "noUselessElse": "off"
+        "noUselessElse": "off",
+        "noNonNullAssertion": "warn"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "warn",
+        "useExhaustiveDependencies": "warn"
       },
       "nursery": {
         "useSortedClasses": {
           "level": "warn",
           "fix": "safe",
           "options": {
-            "attributes": [
-              "classList"
-            ],
-            "functions": [
-              "clsx",
-              "cva",
-              "tw"
-            ]
+            "attributes": ["classList"],
+            "functions": ["clsx", "cva", "tw"]
           }
         }
       },
@@ -41,10 +37,7 @@
     "indentWidth": 2,
     "enabled": true,
     "lineWidth": 80,
-    "ignore": [
-      "node_modules",
-      ".next"
-    ]
+    "ignore": ["node_modules", ".next"]
   },
   "javascript": {
     "formatter": {

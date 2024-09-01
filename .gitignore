@@ -48,3 +48,6 @@ dist
 .idea
 
 .env
+
+.wrangler
+.partykit

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,11 +10,11 @@
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "ESNext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "plugins": [
       {
         "name": "next"
@@ -26,25 +22,14 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "utils/*": [
-        "utils/*"
-      ],
-      "styles/*": [
-        "styles/*"
-      ],
-      "app/*": [
-        "app/*"
-      ],
-      "components/*": [
-        "components/*"
-      ],
-      "lib/*": [
-        "lib/*"
-      ],
-      "hooks/*": [
-        "hooks/*"
-      ]
-    }
+      "@/utils/*": ["utils/*"],
+      "@/styles/*": ["styles/*"],
+      "@/app/*": ["app/*"],
+      "@/components/*": ["components/*"],
+      "@/lib/*": ["lib/*"],
+      "@/hooks/*": ["hooks/*"]
+    },
+    "types": ["@cloudflare/workers-types"]
   },
   "include": [
     "next-env.d.ts",
@@ -53,7 +38,5 @@
     ".next/types/**/*.ts",
     "next.config.js"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
