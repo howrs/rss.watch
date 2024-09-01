@@ -1,3 +1,4 @@
+import { isLocal } from "@/utils/isLocal"
 import { getRequestContext } from "@cloudflare/next-on-pages"
 import {
   concurrent,
@@ -33,6 +34,10 @@ const pushRequest = object({
 app.post("/p", async (c) => {
   const { prisma } = db
 
+  const { ctx } = getRequestContext()
+
+  const waitUntil = isLocal() ? (p: Promise<any>) => void p : ctx.waitUntil
+
   const body = await c.req.json()
 
   const { profileID, clientGroupID, mutations, pushVersion, guildId } = parse(
@@ -48,14 +53,14 @@ app.post("/p", async (c) => {
     updatedAt: new Date(),
   }
 
-  await prisma.clientGroup.findUnique({
-    where: {
-      id: clientGroupID,
-    },
-    include: {
-      guild: true,
-    },
-  })
+  // await prisma.clientGroup.findUnique({
+  //   where: {
+  //     id: clientGroupID,
+  //   },
+  //   include: {
+  //     guild: true,
+  //   },
+  // })
 
   const guild = await prisma.guild.findUnique({
     where: {
@@ -240,10 +245,12 @@ app.post("/p", async (c) => {
   const HOST = `https://rss-watch-party.howrs.partykit.dev`
   // `http://localhost:1999`
 
-  void fetch(`${HOST}/parties/main/${guildId}`, {
-    method: "POST",
-    body: JSON.stringify({ message: "poke" }),
-  })
+  waitUntil(
+    fetch(`${HOST}/parties/main/${guildId}`, {
+      method: "POST",
+      body: JSON.stringify({ message: "poke" }),
+    }),
+  )
 
   return c.json({
     success: true,
