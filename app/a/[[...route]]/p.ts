@@ -1,17 +1,6 @@
-import { isLocal } from "@/utils/isLocal"
-import { getRequestContext } from "@cloudflare/next-on-pages"
-import {
-  concurrent,
-  entries,
-  indexBy,
-  map,
-  pipe,
-  toArray,
-  toAsync,
-} from "@fxts/core"
-import { Prisma } from "@prisma/client"
+import { poke } from "@/lib/poke"
+import { indexBy, pipe } from "@fxts/core"
 import { app } from "app/a/[[...route]]/app.ts"
-// import { prisma } from "prisma/db"
 import { db } from "prisma/db"
 import { any, array, number, object, parse, string } from "valibot"
 
@@ -34,10 +23,6 @@ const pushRequest = object({
 app.post("/p", async (c) => {
   const { prisma } = db
 
-  const { ctx } = getRequestContext()
-
-  const waitUntil = isLocal() ? (p: Promise<any>) => void p : ctx.waitUntil
-
   const body = await c.req.json()
 
   const { profileID, clientGroupID, mutations, pushVersion, guildId } = parse(
@@ -53,46 +38,32 @@ app.post("/p", async (c) => {
     updatedAt: new Date(),
   }
 
-  // await prisma.clientGroup.findUnique({
-  //   where: {
-  //     id: clientGroupID,
-  //   },
-  //   include: {
-  //     guild: true,
-  //   },
-  // })
-
-  const guild = await prisma.guild.findUnique({
+  const clientG = await prisma.clientGroup.findUnique({
     where: {
-      id: guildId,
+      id: clientGroupID,
     },
     include: {
-      ClientGroup: {
+      guild: true,
+      Client: {
         where: {
-          id: clientGroupID,
-        },
-        include: {
-          Client: {
-            where: {
-              id: {
-                in: mutations.map((m) => m.clientID),
-              },
-            },
+          id: {
+            in: mutations.map((m) => m.clientID),
           },
         },
       },
     },
   })
 
-  const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
-  const clients = guild?.ClientGroup[0]?.Client || []
+  const guild = clientG?.guild
+  const clientGroup = clientG || defaultClientGroup
+  const clients = clientG?.Client || []
 
   const indexedClients = pipe(
     clients,
     indexBy((c) => c.id),
   )
 
-  if (!guild) {
+  if (!guild || guild.id !== guildId) {
     return c.json({
       error: "Guild not found",
     })
@@ -162,95 +133,82 @@ app.post("/p", async (c) => {
     client.lastMutationID = nextMutationID
   }
 
-  await prisma.$transaction(
-    [
-      prisma.guild.upsert({
-        create: {
-          id: guildId,
-          name: "test guild",
-          version: nextVersion,
-        },
-        update: {
-          version: nextVersion,
-        },
-        where: {
-          id: guildId,
-        },
-      }),
-      prisma.clientGroup.upsert({
-        where: {
-          id: clientGroup.id,
-        },
-        create: {
-          id: clientGroup.id,
-          guild: {
-            connect: {
-              id: guildId,
-            },
-          },
-          user: {
-            connectOrCreate: {
-              where: {
-                id: profileID,
-              },
-              create: {
-                id: profileID,
-                username: "test",
-              },
-            },
-          },
-        },
-        update: {
-          guild: {
-            connect: {
-              id: guildId,
-            },
-          },
-          user: {
-            connectOrCreate: {
-              where: {
-                id: profileID,
-              },
-              create: {
-                id: profileID,
-                username: "test",
-              },
-            },
-          },
-        },
-      }),
-      ...mutations.map(({ clientID }) =>
-        prisma.client.upsert({
-          where: {
-            id: clientID,
-          },
-          create: {
-            id: clientID,
-            clientGroupId: clientGroup.id,
-            lastMutationID: lastMutationIDs.get(clientID) || 0,
-            lastModifiedVersion: nextVersion,
-          },
-          update: {
-            lastMutationID: lastMutationIDs.get(clientID) || 0,
-            lastModifiedVersion: nextVersion,
-          },
-        }),
-      ),
-    ],
-    {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    },
-  )
-
-  const HOST = `https://rss-watch-party.howrs.partykit.dev`
-  // `http://localhost:1999`
-
-  waitUntil(
-    fetch(`${HOST}/parties/main/${guildId}`, {
-      method: "POST",
-      body: JSON.stringify({ message: "poke" }),
+  await prisma.$transaction([
+    prisma.guild.upsert({
+      create: {
+        id: guildId,
+        name: "test guild",
+        version: nextVersion,
+      },
+      update: {
+        version: nextVersion,
+      },
+      where: {
+        id: guildId,
+      },
     }),
-  )
+    prisma.clientGroup.upsert({
+      where: {
+        id: clientGroup.id,
+      },
+      create: {
+        id: clientGroup.id,
+        guild: {
+          connect: {
+            id: guildId,
+          },
+        },
+        user: {
+          connectOrCreate: {
+            where: {
+              id: profileID,
+            },
+            create: {
+              id: profileID,
+              username: "test",
+            },
+          },
+        },
+      },
+      update: {
+        guild: {
+          connect: {
+            id: guildId,
+          },
+        },
+        user: {
+          connectOrCreate: {
+            where: {
+              id: profileID,
+            },
+            create: {
+              id: profileID,
+              username: "test",
+            },
+          },
+        },
+      },
+    }),
+    ...mutations.map(({ clientID }) =>
+      prisma.client.upsert({
+        where: {
+          id: clientID,
+        },
+        create: {
+          id: clientID,
+          clientGroupId: clientGroup.id,
+          lastMutationID: lastMutationIDs.get(clientID) || 0,
+          lastModifiedVersion: nextVersion,
+        },
+        update: {
+          lastMutationID: lastMutationIDs.get(clientID) || 0,
+          lastModifiedVersion: nextVersion,
+        },
+      }),
+    ),
+  ])
+
+  poke(guildId)
 
   return c.json({
     success: true,
