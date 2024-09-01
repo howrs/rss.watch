@@ -31,6 +31,8 @@ const pushRequest = object({
 
 app.post("/p", async (c) => {
   const { prisma } = db
+  const { waitUntil } = c.executionCtx
+
   const body = await c.req.json()
 
   const { profileID, clientGroupID, mutations, pushVersion, guildId } = parse(
@@ -45,6 +47,15 @@ app.post("/p", async (c) => {
     createdAt: new Date(),
     updatedAt: new Date(),
   }
+
+  await prisma.clientGroup.findUnique({
+    where: {
+      id: clientGroupID,
+    },
+    include: {
+      guild: true,
+    },
+  })
 
   const guild = await prisma.guild.findUnique({
     where: {
@@ -229,10 +240,12 @@ app.post("/p", async (c) => {
   const HOST = `https://rss-watch-party.howrs.partykit.dev`
   // `http://localhost:1999`
 
-  await fetch(`${HOST}/parties/main/${guildId}`, {
-    method: "POST",
-    body: JSON.stringify({ message: "poke" }),
-  })
+  waitUntil(
+    fetch(`${HOST}/parties/main/${guildId}`, {
+      method: "POST",
+      body: JSON.stringify({ message: "poke" }),
+    }),
+  )
 
   return c.json({
     success: true,
