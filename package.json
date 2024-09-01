@@ -60,6 +60,11 @@
     "string-width": "4.2.3"
   },
   "trustedDependencies": [
-    "@biomejs/biome"
+    "@biomejs/biome",
+    "@prisma/client",
+    "@prisma/engines",
+    "esbuild",
+    "prisma",
+    "workerd"
   ]
 }
