@@ -38,25 +38,30 @@ app.post("/p", async (c) => {
     updatedAt: new Date(),
   }
 
-  const clientG = await prisma.clientGroup.findUnique({
+  const guild = await prisma.guild.findUnique({
     where: {
-      id: clientGroupID,
+      id: guildId,
     },
     include: {
-      guild: true,
-      Client: {
+      ClientGroup: {
         where: {
-          id: {
-            in: mutations.map((m) => m.clientID),
+          id: clientGroupID,
+        },
+        include: {
+          Client: {
+            where: {
+              id: {
+                in: mutations.map((m) => m.clientID),
+              },
+            },
           },
         },
       },
     },
   })
 
-  const guild = clientG?.guild
-  const clientGroup = clientG || defaultClientGroup
-  const clients = clientG?.Client || []
+  const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
+  const clients = guild?.ClientGroup[0]?.Client || []
 
   const indexedClients = pipe(
     clients,

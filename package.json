@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rm -rf node_modules .next out bun.lockb",
+    "clean": "rm -rf node_modules .next out bun.lockb .wrangler",
     "check": "taze major",
     "bump": "taze major -w -i",
     "add:component": "shadcn-ui add",

@@ -1,3 +1,4 @@
+import { isLocal } from "@/utils/isLocal"
 import { rCachePreflight } from "@/utils/rCachePreflight"
 import type { Channel, Prisma } from "@prisma/client"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -69,8 +70,11 @@ export const useRCache = () => {
 
   const ws = usePartySocket({
     // usePartySocket takes the same arguments as PartySocket.
-    host: "rss-watch-party.howrs.partykit.dev", // or localhost:1999 in dev
-    // host: `localhost:1999`,
+    // host: "rss-watch-party.howrs.partykit.dev", // or localhost:1999 in dev
+    host: isLocal()
+      ? //
+        `localhost:1999`
+      : `rss-watch-party.howrs.partykit.dev`,
     room: g,
 
     // in addition, you can provide socket lifecycle event handlers

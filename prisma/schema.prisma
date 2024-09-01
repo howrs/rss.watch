@@ -55,12 +55,13 @@ model Client {
   lastMutationID      Int @default(0)
   lastModifiedVersion Int @default(0)
 
-  // clientGroup
   clientGroupId String
   clientGroup   ClientGroup @relation(fields: [clientGroupId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([lastModifiedVersion])
 }
 
 model Channel {
@@ -79,6 +80,8 @@ model Channel {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([lastModifiedVersion])
 }
 
 model Feed {
@@ -99,6 +102,8 @@ model Feed {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([lastModifiedVersion])
 }
 
 model Sent {
