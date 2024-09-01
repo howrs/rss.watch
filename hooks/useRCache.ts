@@ -58,7 +58,7 @@ export const useRCache = () => {
         pullURL: `/a/l?g=${g}`,
         pushURL: `/a/p?g=${g}`,
         pullInterval: ms("1m"),
-        pushDelay: ms("0.5s"),
+        // pushDelay: ms("0.5s"),
 
         mutators,
       })

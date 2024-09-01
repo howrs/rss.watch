@@ -108,7 +108,7 @@ app.post("/p", async (c) => {
 
     if (id < nextMutationID) {
       console.log(`Mutation ${id} has already been processed - skipping`)
-      return
+      continue
     }
     if (id > nextMutationID) {
       console.warn(`Mutation ${id} is from the future - aborting`)
