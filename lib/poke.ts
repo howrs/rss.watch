@@ -1,13 +1,12 @@
-import { isLocal } from "@/utils/isLocal"
+import { PARTY_HOST } from "constants/urls"
 
 export const poke = async (roomId: string) => {
-  const HOST = isLocal()
-    ? //
-      `http://localhost:1999`
-    : `https://rss-watch-party.howrs.partykit.dev`
-
-  await fetch(`${HOST}/parties/main/${roomId}`, {
-    method: "POST",
-    body: JSON.stringify({ message: "poke" }),
-  })
+  const res = await fetch(
+    `https://rss-watch-party.howrs.partykit.dev/parties/main/${roomId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ message: "poke" }),
+    },
+  )
+  return
 }

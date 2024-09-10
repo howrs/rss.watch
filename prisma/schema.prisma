@@ -4,9 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "sqlite"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -15,6 +14,9 @@ model User {
   username String
   avatar   String?
 
+  Guild   Guild  @relation(fields: [guildId], references: [id])
+  guildId String
+
   ClientGroup ClientGroup[]
 
   createdAt DateTime @default(now())
@@ -22,7 +24,10 @@ model User {
 }
 
 model Guild {
-  id   String @id
+  id String @id
+
+  discordId String @unique
+
   name String
 
   version Int @default(0)
@@ -30,6 +35,7 @@ model Guild {
   ClientGroup ClientGroup[]
   Channel     Channel[]
   Feed        Feed[]
+  User        User[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -48,13 +54,16 @@ model ClientGroup {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // guildId index
+  @@index([id, guildId])
 }
 
 model Client {
   id String @id
 
-  lastMutationID      Int @default(0)
-  lastModifiedVersion Int @default(0)
+  lastMutationID Int @default(0)
+  version        Int @default(0)
 
   clientGroupId String
   clientGroup   ClientGroup @relation(fields: [clientGroupId], references: [id])
@@ -62,7 +71,9 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([lastModifiedVersion])
+  // clientGroupId index
+  @@index([id, clientGroupId])
+  @@index([version, clientGroupId])
 }
 
 model Channel {
@@ -73,8 +84,8 @@ model Channel {
   position Int
   parentId String?
 
-  lastModifiedVersion Int     @default(0)
-  deleted             Boolean @default(false)
+  version Int     @default(0)
+  deleted Boolean @default(false)
 
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id])
@@ -82,7 +93,7 @@ model Channel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([lastModifiedVersion])
+  @@index([version, guildId])
 }
 
 model Feed {
@@ -95,8 +106,8 @@ model Feed {
   faviconUrl String?
   xmlUrl     String?
 
-  lastModifiedVersion Int     @default(0)
-  deleted             Boolean @default(false)
+  version Int     @default(0)
+  deleted Boolean @default(false)
 
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id])
@@ -104,11 +115,5 @@ model Feed {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([lastModifiedVersion])
-}
-
-model Sent {
-  id String @id
-
-  createdAt DateTime @default(now())
+  @@index([version, guildId])
 }

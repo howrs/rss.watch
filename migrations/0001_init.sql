@@ -3,13 +3,16 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "username" TEXT NOT NULL,
     "avatar" TEXT,
+    "guildId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "User_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
 CREATE TABLE "Guild" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "discordId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "version" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -31,7 +34,7 @@ CREATE TABLE "ClientGroup" (
 CREATE TABLE "Client" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "lastMutationID" INTEGER NOT NULL DEFAULT 0,
-    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "clientGroupId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -45,7 +48,7 @@ CREATE TABLE "Channel" (
     "name" TEXT NOT NULL,
     "position" INTEGER NOT NULL,
     "parentId" TEXT,
-    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "guildId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -60,7 +63,7 @@ CREATE TABLE "Feed" (
     "type" TEXT,
     "faviconUrl" TEXT,
     "xmlUrl" TEXT,
-    "lastModifiedVersion" INTEGER NOT NULL DEFAULT 0,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "guildId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -68,9 +71,20 @@ CREATE TABLE "Feed" (
     CONSTRAINT "Feed_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateTable
-CREATE TABLE "Sent" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "Guild_discordId_key" ON "Guild"("discordId");
 
+-- CreateIndex
+CREATE INDEX "ClientGroup_id_guildId_idx" ON "ClientGroup"("id", "guildId");
+
+-- CreateIndex
+CREATE INDEX "Client_id_clientGroupId_idx" ON "Client"("id", "clientGroupId");
+
+-- CreateIndex
+CREATE INDEX "Client_version_clientGroupId_idx" ON "Client"("version", "clientGroupId");
+
+-- CreateIndex
+CREATE INDEX "Channel_version_guildId_idx" ON "Channel"("version", "guildId");
+
+-- CreateIndex
+CREATE INDEX "Feed_version_guildId_idx" ON "Feed"("version", "guildId");

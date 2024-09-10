@@ -1,9 +1,10 @@
-import { isLocal } from "@/utils/isLocal"
 import { rCachePreflight } from "@/utils/rCachePreflight"
 import type { Channel, Prisma } from "@prisma/client"
 import { useSuspenseQuery } from "@tanstack/react-query"
+import { PARTY_HOST } from "constants/urls"
+import Cookies from "js-cookie"
 import ms from "ms"
-import { useSearchParams } from "next/navigation"
+import { redirect, useRouter, useSearchParams } from "next/navigation"
 import usePartySocket from "partysocket/react"
 import { Replicache, type WriteTransaction } from "replicache"
 import { isServer } from "utils/isServer"
@@ -43,8 +44,10 @@ const mutators = {
 }
 
 export const useRCache = () => {
+  const { replace } = useRouter()
   const search = useSearchParams()
   const g = search.get("g")!
+
   const r = useSuspenseQuery({
     queryKey: ["replicache"],
     queryFn: async () => {
@@ -52,8 +55,16 @@ export const useRCache = () => {
         return {} as Replicache<typeof mutators>
       }
 
+      const userId = Cookies.get("user_id")
+
+      if (!userId) {
+        return redirect("/")
+        // replace("")
+        // return {} as Replicache<typeof mutators>
+      }
+
       const r = new Replicache({
-        name: "user42",
+        name: `${userId}:${g}`,
         licenseKey: "l11c46dbbe3b14e5bae548f51cf9c2543",
         // logLevel: "debug",
         pullURL: `/a/l?g=${g}`,
@@ -62,23 +73,18 @@ export const useRCache = () => {
         // pushDelay: ms("0.5s"),
 
         mutators,
+        schemaVersion: "1",
       })
+
+      r.onClientStateNotFound = null
 
       return r
     },
   })
 
   const ws = usePartySocket({
-    // usePartySocket takes the same arguments as PartySocket.
-    // host: "rss-watch-party.howrs.partykit.dev", // or localhost:1999 in dev
-    host: isLocal()
-      ? //
-        `localhost:1999`
-      : `rss-watch-party.howrs.partykit.dev`,
+    host: new URL(PARTY_HOST).host,
     room: g,
-
-    // in addition, you can provide socket lifecycle event handlers
-    // (equivalent to using ws.addEventListener in an effect hook)
     onOpen() {
       console.log("connected")
     },

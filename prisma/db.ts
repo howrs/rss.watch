@@ -1,3 +1,4 @@
+import { isLocal } from "@/utils/isLocal"
 import { getRequestContext } from "@cloudflare/next-on-pages"
 import { PrismaD1 } from "@prisma/adapter-d1"
 import { PrismaClient } from "@prisma/client"
@@ -14,7 +15,17 @@ export const db = new Proxy(
 
       const adapter = new PrismaD1(env.DB)
 
-      const prisma = new PrismaClient({ adapter })
+      const prisma = new PrismaClient({
+        adapter,
+        ...(isLocal()
+          ? {
+              log: [
+                //
+                "query",
+              ],
+            }
+          : {}),
+      })
 
       return prisma
     },

@@ -1,46 +1,36 @@
-import { app } from "app/a/[[...route]]/app.ts"
-// import { prisma } from "prisma/db"
+import { app as route } from "@/app/a/[[...route]]/p"
+import { vValidator } from "@hono/valibot-validator"
 import { db } from "prisma/db"
-import { object, parse, string } from "valibot"
+import { object, string } from "valibot"
 
-const schema = object({
-  name: string(),
-})
-
-app.post("/guild", async (c) => {
-  const { prisma } = db
-  const body = await c.req.json()
-
-  const { name } = parse(schema, body)
-
-  const guild = await prisma.guild.create({
-    data: {
-      id: crypto.randomUUID(),
-      name,
-    },
-  })
-
-  return c.json({
-    data: guild,
-    success: true,
-  })
-})
-
-app.post("/user", async (c) => {
-  const { prisma } = db
-  // const body = await c.req.json()
-
-  // const { name } = parse(schema, body)
-
-  const user = await prisma.user.create({
-    data: {
-      id: crypto.randomUUID(),
-      username: "test",
-    },
-  })
-
-  return c.json({
-    data: user,
-    success: true,
-  })
-})
+export const app = route.put(
+  "/guild",
+  vValidator(
+    "json",
+    object({
+      id: string(),
+      name: string(),
+    }),
+  ),
+  async (c) => {
+    // const { req } = c
+    // const { prisma } = db
+    // const { id, name } = req.valid("json")
+    // const guild = await prisma.guild.upsert({
+    //   where: {
+    //     id,
+    //   },
+    //   create: {
+    //     id,
+    //     name,
+    //   },
+    //   update: {
+    //     name,
+    //   },
+    // })
+    // return c.json({
+    //   data: guild,
+    //   success: true,
+    // })
+  },
+)

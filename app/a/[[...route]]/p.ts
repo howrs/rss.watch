@@ -1,115 +1,131 @@
+import { app as route } from "@/app/a/[[...route]]/l"
 import { poke } from "@/lib/poke"
 import { indexBy, pipe } from "@fxts/core"
-import { app } from "app/a/[[...route]]/app.ts"
+import { vValidator } from "@hono/valibot-validator"
+import type { Prisma } from "@prisma/client"
+import { cookies } from "next/headers"
 import { db } from "prisma/db"
-import { any, array, number, object, parse, string } from "valibot"
+import { any, array, number, object, string } from "valibot"
 
-const pushRequest = object({
-  guildId: string(),
-  profileID: string(),
-  clientGroupID: string(),
-  pushVersion: number(),
-  mutations: array(
+export const app = route.post(
+  "/p",
+  vValidator(
+    "json",
     object({
-      clientID: string(),
-      id: number(),
-      name: string(),
-      timestamp: number(),
-      args: any(),
+      profileID: string(),
+      clientGroupID: string(),
+      pushVersion: number(),
+      mutations: array(
+        object({
+          clientID: string(),
+          id: number(),
+          name: string(),
+          timestamp: number(),
+          args: any(),
+        }),
+      ),
     }),
   ),
-})
+  vValidator(
+    "query",
+    object({
+      g: string(),
+    }),
+  ),
+  async (c) => {
+    const { prisma } = db
 
-app.post("/p", async (c) => {
-  const { prisma } = db
+    const { clientGroupID, mutations, pushVersion } = c.req.valid("json")
+    const guildId = c.req.query("g")
 
-  const body = await c.req.json()
+    const userId = cookies().get("user_id")?.value
 
-  const { profileID, clientGroupID, mutations, pushVersion, guildId } = parse(
-    pushRequest,
-    { ...body, guildId: c.req.query("g") },
-  )
+    if (!userId) {
+      return c.redirect("/")
+    }
 
-  const defaultClientGroup = {
-    id: clientGroupID,
-    guildId,
-    userId: profileID,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
+    const defaultClientGroup = {
+      id: clientGroupID,
+      guildId,
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
 
-  const guild = await prisma.guild.findUnique({
-    where: {
-      id: guildId,
-    },
-    include: {
-      ClientGroup: {
-        where: {
-          id: clientGroupID,
-        },
-        include: {
-          Client: {
-            where: {
-              id: {
-                in: mutations.map((m) => m.clientID),
+    const sqls: Prisma.PrismaPromise<any>[] = []
+
+    const guild = await prisma.guild.findUnique({
+      where: {
+        id: guildId,
+      },
+      include: {
+        ClientGroup: {
+          where: {
+            id: {
+              equals: clientGroupID,
+            },
+          },
+          include: {
+            Client: {
+              where: {
+                id: {
+                  in: [...new Set(mutations.map((m) => m.clientID))],
+                },
               },
             },
           },
         },
       },
-    },
-  })
-
-  const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
-  const clients = guild?.ClientGroup[0]?.Client || []
-
-  const indexedClients = pipe(
-    clients,
-    indexBy((c) => c.id),
-  )
-
-  if (!guild || guild.id !== guildId) {
-    return c.json({
-      error: "Guild not found",
     })
-  }
 
-  const prevVersion = guild.version
-  const nextVersion = prevVersion + 1
-  const lastMutationIDs = new Map<string, number>([])
+    const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
+    const clients = guild?.ClientGroup[0]?.Client || []
 
-  for (const mutation of mutations) {
-    const { id, name, clientID, args } = mutation
+    const indexedClients = pipe(
+      clients,
+      indexBy((c) => c.id),
+    )
 
-    const defaultClient = {
-      id: clientID,
-      clientGroupID: clientGroup.id,
-      lastMutationID: 0,
-      lastModifiedVersion: prevVersion,
+    if (!guild || guild.id !== guildId) {
+      return c.json({ error: "Guild not found" })
     }
 
-    const client = indexedClients[clientID] || defaultClient
+    const prevVersion = guild.version
+    const nextVersion = prevVersion + 1
+    const lastMutationIDs = new Map<string, number>([])
 
-    if (!client) {
-      throw new Error(`Client not found: ${clientID}`)
-    }
+    for (const mutation of mutations) {
+      const { id, name, clientID, args } = mutation
 
-    const nextMutationID = client.lastMutationID + 1
+      const defaultClient = {
+        id: clientID,
+        clientGroupID: clientGroup.id,
+        lastMutationID: 0,
+        version: prevVersion,
+      }
 
-    lastMutationIDs.set(clientID, nextMutationID)
+      const client = indexedClients[clientID] || defaultClient
 
-    if (id < nextMutationID) {
-      console.log(`Mutation ${id} has already been processed - skipping`)
-      continue
-    }
-    if (id > nextMutationID) {
-      console.warn(`Mutation ${id} is from the future - aborting`)
-      break
-    }
+      // if (mutation.id > 1 && !indexedClients[clientID]) {
+      //   console.error("Client not found", clientID)
+      //   return c.json({ error: "ClientStateNotFound" })
+      // }
 
-    if (name === "createChannel") {
-      await prisma.channel
-        .create({
+      const nextMutationID = client.lastMutationID + 1
+
+      lastMutationIDs.set(client.id, nextMutationID)
+
+      if (id < nextMutationID) {
+        console.warn(`Mutation ${id} has already been processed - skipping`)
+        continue
+      }
+      if (id > nextMutationID) {
+        console.warn(`Mutation ${id} is from the future - aborting`)
+        break
+      }
+
+      if (name === "createChannel") {
+        const sql = prisma.channel.createMany({
           data: {
             id: args.id,
             type: args.type,
@@ -117,104 +133,102 @@ app.post("/p", async (c) => {
             parentId: args.parentId,
             position: args.position,
             guildId,
-            lastModifiedVersion: nextVersion,
+            version: nextVersion,
           },
         })
-        .catch(console.log)
-    } else if (name === "deleteChannel") {
-      await prisma.channel
-        .update({
+        // .catch(console.warn)
+
+        sqls.push(sql)
+      } else if (name === "deleteChannel") {
+        const sql = prisma.channel.updateMany({
           where: {
             id: args.split("/")[1],
           },
           data: {
             deleted: true,
-            lastModifiedVersion: nextVersion,
+            version: nextVersion,
           },
         })
-        .catch(console.log)
+        // .catch(console.warn)
+
+        sqls.push(sql)
+      }
+
+      client.lastMutationID = nextMutationID
     }
 
-    client.lastMutationID = nextMutationID
-  }
-
-  await Promise.all([
-    prisma.guild.upsert({
-      create: {
-        id: guildId,
-        name: "test guild",
-        version: nextVersion,
-      },
-      update: {
-        version: nextVersion,
-      },
-      where: {
-        id: guildId,
-      },
-    }),
-    prisma.clientGroup.upsert({
-      where: {
-        id: clientGroup.id,
-      },
-      create: {
-        id: clientGroup.id,
-        guild: {
-          connect: {
-            id: guildId,
-          },
-        },
-        user: {
-          connectOrCreate: {
-            where: {
-              id: profileID,
-            },
-            create: {
-              id: profileID,
-              username: "test",
-            },
-          },
-        },
-      },
-      update: {
-        guild: {
-          connect: {
-            id: guildId,
-          },
-        },
-        user: {
-          connectOrCreate: {
-            where: {
-              id: profileID,
-            },
-            create: {
-              id: profileID,
-              username: "test",
-            },
-          },
-        },
-      },
-    }),
-    ...mutations.map(({ clientID }) =>
-      prisma.client.upsert({
+    const sqlss: Prisma.PrismaPromise<any>[] = [
+      prisma.guild.updateMany({
         where: {
-          id: clientID,
+          id: guildId,
         },
-        create: {
-          id: clientID,
-          clientGroupId: clientGroup.id,
-          lastMutationID: lastMutationIDs.get(clientID) || 0,
-          lastModifiedVersion: nextVersion,
-        },
-        update: {
-          lastMutationID: lastMutationIDs.get(clientID) || 0,
-          lastModifiedVersion: nextVersion,
+        data: {
+          version: nextVersion,
         },
       }),
-    ),
-    poke(guildId),
-  ])
+      ...(guild?.ClientGroup[0]
+        ? []
+        : // prisma.clientGroup.updateMany({
+          //     where: {
+          //       id: clientGroup.id,
+          //     },
+          //     data: {
+          //       guildId,
+          //       userId,
+          //     },
+          //   })
+          [
+            prisma.clientGroup.create({
+              data: {
+                id: clientGroup.id,
+                guildId,
+                userId,
+              },
+            }),
+          ]),
 
-  return c.json({
-    success: true,
-  })
-})
+      ...mutations
+        .map((c) => c.clientID)
+        .map((id) =>
+          indexedClients[id]
+            ? prisma.client.updateMany({
+                where: {
+                  id,
+                },
+                data: {
+                  clientGroupId: clientGroup.id,
+                  lastMutationID: lastMutationIDs.get(id) || 0,
+                  version: nextVersion,
+                },
+              })
+            : prisma.client.create({
+                data: {
+                  id,
+                  clientGroupId: clientGroup.id,
+                  lastMutationID: lastMutationIDs.get(id) || 0,
+                  version: nextVersion,
+                },
+              }),
+        ),
+    ]
+
+    sqls.push(...sqlss)
+
+    await Promise.all([
+      prisma.$transaction(sqls),
+      poke(guildId).catch(console.warn),
+    ])
+
+    const reads = 2 + clients.length
+    const writes = 1 + clients.length + mutations.length
+
+    console.error({
+      reads,
+      writes,
+    })
+
+    return c.json({
+      success: true,
+    })
+  },
+)
