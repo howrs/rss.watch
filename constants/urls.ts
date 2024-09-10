@@ -1,6 +1,6 @@
 import { isLocal } from "@/utils/isLocal"
 
-export const HOST = `rss.watch`
+export const HOST = `rss-watch.pages.dev`
 
 export const REDIRECT_PATH = `/oauth/discord`
 

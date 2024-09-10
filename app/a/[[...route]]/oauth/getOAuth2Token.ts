@@ -1,3 +1,4 @@
+import { getBaseURL } from "@/utils/getBaseURL"
 import { REDIRECT_PATH } from "constants/urls"
 import { headers } from "next/headers"
 
@@ -8,7 +9,9 @@ export const getOAuth2Token = async (code: string) => {
   const host = headers().get("Host")
   const origin = headers().get("Origin")
   const BASE_URL =
-    !!host && host.includes("localhost") ? `http://${host}` : origin
+    !!host && host.includes("localhost")
+      ? `http://${host}`
+      : origin || getBaseURL()
 
   if (!BASE_URL) {
     throw new Error("BASE_URL not found")
