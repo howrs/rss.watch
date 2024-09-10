@@ -214,10 +214,9 @@ export const app = route.post(
 
     sqls.push(...sqlss)
 
-    await Promise.all([
-      prisma.$transaction(sqls),
-      poke(guildId).catch(console.warn),
-    ])
+    await prisma.$transaction(sqls)
+
+    await Promise.all([poke(guildId).catch(console.warn)])
 
     const reads = 2 + clients.length
     const writes = 1 + clients.length + mutations.length
