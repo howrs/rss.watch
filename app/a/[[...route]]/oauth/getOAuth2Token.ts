@@ -13,6 +13,8 @@ export const getOAuth2Token = async (code: string) => {
       ? `http://${host}`
       : origin || getBaseURL()
 
+  console.log({ BASE_URL })
+
   if (!BASE_URL) {
     throw new Error("BASE_URL not found")
   }

@@ -13,7 +13,7 @@ export const getBaseURL = (): string => {
   }
 
   if (globalThis.location.host.includes(HOST)) {
-    return `http://${HOST}`
+    return `https://${HOST}`
   }
 
   return globalThis.location.origin
