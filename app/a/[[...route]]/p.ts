@@ -136,7 +136,6 @@ export const app = route.post(
             version: nextVersion,
           },
         })
-        // .catch(console.warn)
 
         sqls.push(sql)
       } else if (name === "deleteChannel") {
@@ -149,7 +148,6 @@ export const app = route.post(
             version: nextVersion,
           },
         })
-        // .catch(console.warn)
 
         sqls.push(sql)
       }

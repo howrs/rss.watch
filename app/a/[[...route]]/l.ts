@@ -30,14 +30,6 @@ export const app = route.post(
 
     const prevVersion = cookie ?? 0
 
-    // const defaultClientGroup = {
-    //   id: clientGroupID,
-    //   guildId,
-    //   userId: profileID,
-    //   createdAt: new Date(),
-    //   updatedAt: new Date(),
-    // }
-
     const guild = await prisma.guild.findUnique({
       where: {
         id: guildId,

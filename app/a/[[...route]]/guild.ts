@@ -13,24 +13,27 @@ export const app = route.put(
     }),
   ),
   async (c) => {
-    // const { req } = c
-    // const { prisma } = db
-    // const { id, name } = req.valid("json")
-    // const guild = await prisma.guild.upsert({
-    //   where: {
-    //     id,
-    //   },
-    //   create: {
-    //     id,
-    //     name,
-    //   },
-    //   update: {
-    //     name,
-    //   },
-    // })
-    // return c.json({
-    //   data: guild,
-    //   success: true,
-    // })
+    const { req } = c
+    const { prisma } = db
+    const { id, name } = req.valid("json")
+
+    const guild = await prisma.guild.upsert({
+      where: {
+        id,
+      },
+      create: {
+        id,
+        name,
+        discordId: id,
+      },
+      update: {
+        name,
+      },
+    })
+
+    return c.json({
+      data: guild,
+      success: true,
+    })
   },
 )
