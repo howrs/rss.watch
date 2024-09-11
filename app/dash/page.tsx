@@ -1,11 +1,13 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { useIsSyncing } from "@/hooks/useIsSyncing"
 import { useRCache } from "@/hooks/useRCache"
 import { uuid } from "@/utils/ids"
 import { map, pipe, sort, toArray } from "@fxts/core"
 import type { Channel } from "@prisma/client"
 import { useNetworkState } from "@uidotdev/usehooks"
+import { CloudOff } from "lucide-react"
 import { useSubscribe } from "replicache-react"
 
 export default function Page() {
@@ -23,13 +25,18 @@ export default function Page() {
     { default: [] },
   )
 
-  const { downlink, online } = useNetworkState()
+  const { online } = useNetworkState()
+  const { isSyncing } = useIsSyncing()
 
   return (
     <div className="m-2 p-2 text-2xl">
-      <div className="flex">
-        <div>Network: {online ? "online" : "offline"}</div>
-        <div>Downlink: {downlink} Mbps</div>
+      <div className="flex h-12 gap-4">
+        {!online && (
+          <div>
+            <CloudOff />
+          </div>
+        )}
+        {online && isSyncing && <div>Syncing...</div>}
       </div>
       <div className="">
         <Button

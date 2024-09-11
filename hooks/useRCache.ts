@@ -1,6 +1,7 @@
+import { isSyncing } from "@/hooks/useIsSyncing"
 import { rCachePreflight } from "@/utils/rCachePreflight"
 import type { Channel, Prisma } from "@prisma/client"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { PARTY_HOST } from "constants/urls"
 import Cookies from "js-cookie"
 import ms from "ms"
@@ -48,6 +49,8 @@ export const useRCache = () => {
   const search = useSearchParams()
   const g = search.get("g")!
 
+  const client = useQueryClient()
+
   const r = useSuspenseQuery({
     queryKey: ["replicache"],
     queryFn: async () => {
@@ -77,6 +80,10 @@ export const useRCache = () => {
       })
 
       r.onClientStateNotFound = null
+
+      r.onSync = (syncing: boolean) => {
+        client.setQueryData(isSyncing.queryKey, syncing)
+      }
 
       return r
     },
