@@ -1,17 +1,19 @@
 "use client"
 
+import { client } from "@/components/QueryProvider"
 import { Button } from "@/components/ui/button"
-import { useIsSyncing } from "@/hooks/useIsSyncing"
 import { useRCache } from "@/hooks/useRCache"
+import { useSyncing } from "@/hooks/useSyncing"
 import { uuid } from "@/utils/ids"
 import { map, pipe, sort, toArray } from "@fxts/core"
 import type { Channel } from "@prisma/client"
 import { useNetworkState } from "@uidotdev/usehooks"
 import { CloudOff } from "lucide-react"
+import { useEffect } from "react"
 import { useSubscribe } from "replicache-react"
 
 export default function Page() {
-  const { data: r } = useRCache()
+  const { r, m } = useRCache()
 
   const channels = useSubscribe(
     r,
@@ -26,7 +28,22 @@ export default function Page() {
   )
 
   const { online } = useNetworkState()
-  const { isSyncing } = useIsSyncing()
+  const { syncing } = useSyncing()
+
+  useEffect(() => {
+    !(async () => {
+      const isOffline = client.getQueryData<boolean>(["isOffline"])
+
+      if (isOffline && online) {
+        const hasMutations = (await r.experimentalPendingMutations()).length > 0
+
+        if (hasMutations) {
+          client.setQueryData(["isOffline"], false)
+          r.push({ now: true })
+        }
+      }
+    })()
+  }, [online])
 
   return (
     <div className="m-2 p-2 text-2xl">
@@ -36,12 +53,12 @@ export default function Page() {
             <CloudOff />
           </div>
         )}
-        {online && isSyncing && <div>Syncing...</div>}
+        {online && syncing && <div>Syncing...</div>}
       </div>
       <div className="">
         <Button
           onClick={() => {
-            r.mutate.createChannel({
+            m.createChannel({
               id: uuid(),
               name: "test channel",
               position: channels.length,
@@ -64,7 +81,7 @@ export default function Page() {
                 className="h-4 w-fit text-xs"
                 variant="link"
                 onClick={() => {
-                  r.mutate.deleteChannel(k)
+                  m.deleteChannel(k)
                 }}
               >
                 del

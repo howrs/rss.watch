@@ -23,10 +23,12 @@ const config: QueryClientConfig = {
   },
 }
 
+export const client = new QueryClient(config)
+
 type Props = {} & Omit<ComponentProps<typeof QueryClientProvider>, "client">
 
 export const QueryProvider = ({ children, ...props }: Props) => {
-  const [client] = useState(() => new QueryClient(config))
+  // const [client] = useState(() => new QueryClient(config))
 
   return (
     <QueryClientProvider {...props} client={client}>

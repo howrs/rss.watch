@@ -4,13 +4,15 @@ export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
 
   async onRequest(req: Party.Request) {
-    const { message } = await req.json<{ message: string }>()
+    const json = await req.json<{ message: string }>()
+
+    const { message } = json
 
     if (message.includes("poke")) {
       this.room.broadcast(`poke`, [])
     }
 
-    return new Response("hello from server")
+    return new Response()
   }
 }
 

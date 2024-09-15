@@ -29,8 +29,6 @@ export const app = route.get(
 
     const res = await getOAuth2Token(code)
 
-    console.log(res)
-
     const {
       access_token,
       token_type,

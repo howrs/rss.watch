@@ -12,9 +12,8 @@ export const app = route.post(
   vValidator(
     "json",
     object({
-      profileID: string(),
+      g: string(),
       clientGroupID: string(),
-      pushVersion: number(),
       mutations: array(
         object({
           clientID: string(),
@@ -26,17 +25,10 @@ export const app = route.post(
       ),
     }),
   ),
-  vValidator(
-    "query",
-    object({
-      g: string(),
-    }),
-  ),
   async (c) => {
     const { prisma } = db
 
-    const { clientGroupID, mutations, pushVersion } = c.req.valid("json")
-    const guildId = c.req.query("g")
+    const { clientGroupID, mutations, g: guildId } = c.req.valid("json")
 
     const userId = cookies().get("user_id")?.value
 
@@ -78,17 +70,17 @@ export const app = route.post(
       },
     })
 
-    const clientGroup = guild?.ClientGroup[0] || defaultClientGroup
-    const clients = guild?.ClientGroup[0]?.Client || []
+    if (!guild) {
+      return c.json({ error: "Guild not found" })
+    }
+
+    const clientGroup = guild.ClientGroup[0] || defaultClientGroup
+    const clients = guild.ClientGroup[0]?.Client || []
 
     const indexedClients = pipe(
       clients,
       indexBy((c) => c.id),
     )
-
-    if (!guild || guild.id !== guildId) {
-      return c.json({ error: "Guild not found" })
-    }
 
     const prevVersion = guild.version
     const nextVersion = prevVersion + 1
@@ -125,31 +117,31 @@ export const app = route.post(
       }
 
       if (name === "createChannel") {
-        const sql = prisma.channel.createMany({
-          data: {
-            id: args.id,
-            type: args.type,
-            name: args.name,
-            parentId: args.parentId,
-            position: args.position,
-            guildId,
-            version: nextVersion,
-          },
-        })
-
-        sqls.push(sql)
+        sqls.push(
+          prisma.channel.createMany({
+            data: {
+              id: args.id,
+              type: args.type,
+              name: args.name,
+              parentId: args.parentId,
+              position: args.position,
+              guildId,
+              version: nextVersion,
+            },
+          }),
+        )
       } else if (name === "deleteChannel") {
-        const sql = prisma.channel.updateMany({
-          where: {
-            id: args.split("/")[1],
-          },
-          data: {
-            deleted: true,
-            version: nextVersion,
-          },
-        })
-
-        sqls.push(sql)
+        sqls.push(
+          prisma.channel.updateMany({
+            where: {
+              id: args.split("/")[1],
+            },
+            data: {
+              deleted: true,
+              version: nextVersion,
+            },
+          }),
+        )
       }
 
       client.lastMutationID = nextMutationID
@@ -185,36 +177,34 @@ export const app = route.post(
             }),
           ]),
 
-      ...mutations
-        .map((c) => c.clientID)
-        .map((id) =>
-          indexedClients[id]
-            ? prisma.client.updateMany({
-                where: {
-                  id,
-                },
-                data: {
-                  clientGroupId: clientGroup.id,
-                  lastMutationID: lastMutationIDs.get(id) || 0,
-                  version: nextVersion,
-                },
-              })
-            : prisma.client.create({
-                data: {
-                  id,
-                  clientGroupId: clientGroup.id,
-                  lastMutationID: lastMutationIDs.get(id) || 0,
-                  version: nextVersion,
-                },
-              }),
-        ),
+      ...[...new Set(mutations.map((c) => c.clientID))].map((id) =>
+        indexedClients[id]
+          ? prisma.client.updateMany({
+              where: {
+                id,
+              },
+              data: {
+                clientGroupId: clientGroup.id,
+                lastMutationID: lastMutationIDs.get(id) || 0,
+                version: nextVersion,
+              },
+            })
+          : prisma.client.create({
+              data: {
+                id,
+                clientGroupId: clientGroup.id,
+                lastMutationID: lastMutationIDs.get(id) || 0,
+                version: nextVersion,
+              },
+            }),
+      ),
     ]
 
     sqls.push(...sqlss)
 
     await prisma.$transaction(sqls)
 
-    await Promise.all([poke(guildId).catch(console.warn)])
+    await Promise.all([poke({ g: guildId }).catch(console.warn)])
 
     const reads = 2 + clients.length
     const writes = 1 + clients.length + mutations.length
@@ -224,8 +214,6 @@ export const app = route.post(
       writes,
     })
 
-    return c.json({
-      success: true,
-    })
+    return c.text("")
   },
 )
