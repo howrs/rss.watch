@@ -36,6 +36,7 @@ model Guild {
   Channel     Channel[]
   Feed        Feed[]
   User        User[]
+  Webhook     Webhook[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,7 +56,6 @@ model ClientGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // guildId index
   @@index([id, guildId])
 }
 
@@ -71,7 +71,6 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // clientGroupId index
   @@index([id, clientGroupId])
   @@index([version, clientGroupId])
 }
@@ -87,6 +86,11 @@ model Channel {
   version Int     @default(0)
   deleted Boolean @default(false)
 
+  Feed Feed[]
+
+  webhookId String?
+  Webhook   Webhook?
+
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id])
 
@@ -101,13 +105,35 @@ model Feed {
 
   value String
 
-  // meta
   type       String?
   faviconUrl String?
   xmlUrl     String?
 
   version Int     @default(0)
   deleted Boolean @default(false)
+
+  channelId String
+  channel   Channel @relation(fields: [channelId], references: [id])
+
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([version, guildId])
+}
+
+model Webhook {
+  id String @id
+
+  url String
+
+  version Int     @default(0)
+  deleted Boolean @default(false)
+
+  channelId String  @unique
+  channel   Channel @relation(fields: [channelId], references: [id])
 
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id])

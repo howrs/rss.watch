@@ -48,6 +48,7 @@ dist
 .idea
 
 .env
+.dev.vars
 
 .wrangler
 .partykit

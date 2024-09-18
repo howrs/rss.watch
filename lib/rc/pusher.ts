@@ -1,5 +1,7 @@
+import { c } from "@/app/a/[[...route]]/hc"
 import { client } from "@/components/QueryProvider"
 import type { Pusher } from "replicache"
+import { deflate } from "pako"
 
 export const pusher: Pusher = async (body) => {
   if (!("clientGroupID" in body)) {
@@ -21,17 +23,20 @@ export const pusher: Pusher = async (body) => {
 
   const g = new URLSearchParams(location.search).get("g")!
 
-  const res = await fetch(`/a/p`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const compressed = deflate(
+    JSON.stringify({
       g,
       clientGroupID,
       mutations,
     }),
-  })
+  )
+
+  const res = await c.o.$post(
+    {},
+    {
+      init: { body: compressed },
+    },
+  )
 
   return {
     httpRequestInfo: {

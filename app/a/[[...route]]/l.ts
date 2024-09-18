@@ -1,117 +1,121 @@
 import { getEntityKey } from "@/lib/rc/getEntityKey"
 import { fromEntries, map, pipe, toArray } from "@fxts/core"
-import { vValidator } from "@hono/valibot-validator"
-import { app as route } from "app/a/[[...route]]/app.ts"
+import type { Context } from "hono"
 import { cookies } from "next/headers"
+import { deflate, inflate } from "pako"
 import { db } from "prisma/db"
 import type { PatchOperation, PullResponseOKV1 } from "replicache"
 import { nullable, number, object, parse, string } from "valibot"
 
-export const app = route.post(
-  "/l",
-  vValidator(
-    "json",
-    object({
-      g: string(),
-      clientGroupID: string(),
-      cookie: nullable(number()),
-    }),
-  ),
-  async ({ req, json, redirect }) => {
-    const { prisma } = db
-    const { cookie, clientGroupID, g: guildId } = req.valid("json")
+const lSchema = object({
+  g: string(),
+  clientGroupID: string(),
+  cookie: nullable(number()),
+})
 
-    const prevVersion = cookie ?? 0
+export const l = async (c: Context) => {
+  const { req, redirect, json } = c
+  const { prisma } = db
 
-    const userId = cookies().get("user_id")?.value
+  const body = parse(
+    lSchema,
+    JSON.parse(inflate(await req.arrayBuffer(), { to: "string" })),
+  )
 
-    if (!userId) {
-      return redirect("/")
-    }
+  const { cookie, clientGroupID, g: guildId } = body
 
-    const guild = await prisma.guild.findUnique({
-      where: {
-        id: guildId,
+  const prevVersion = cookie ?? 0
+
+  const userId = cookies().get("user_id")?.value
+
+  if (!userId) {
+    return redirect("/")
+  }
+
+  const guild = await prisma.guild.findUnique({
+    where: {
+      id: guildId,
+    },
+    include: {
+      User: {
+        where: {
+          id: userId,
+        },
       },
-      include: {
-        User: {
-          where: {
-            id: userId,
-          },
+      ClientGroup: {
+        where: {
+          id: clientGroupID,
         },
-        ClientGroup: {
-          where: {
-            id: clientGroupID,
-          },
-          include: {
-            Client: {
-              where: {
-                version: {
-                  gt: prevVersion,
-                },
-              },
-              select: {
-                id: true,
-                lastMutationID: true,
+        include: {
+          Client: {
+            where: {
+              version: {
+                gt: prevVersion,
               },
             },
-          },
-        },
-        Channel: {
-          where: {
-            version: {
-              gt: prevVersion,
+            select: {
+              id: true,
+              lastMutationID: true,
             },
-            ...(prevVersion === 0 ? { deleted: false } : {}),
-          },
-          select: {
-            id: true,
-            type: true,
-            name: true,
-            parentId: true,
-            position: true,
-            deleted: true,
-          },
-        },
-        Feed: {
-          where: {
-            version: {
-              gt: prevVersion,
-            },
-            ...(prevVersion === 0 ? { deleted: false } : {}),
-          },
-          select: {
-            id: true,
-            type: true,
-            deleted: true,
           },
         },
       },
-    })
+      Channel: {
+        where: {
+          version: {
+            gt: prevVersion,
+          },
+          ...(prevVersion === 0 ? { deleted: false } : {}),
+        },
+        select: {
+          id: true,
+          type: true,
+          name: true,
+          parentId: true,
+          position: true,
+          deleted: true,
+        },
+      },
+      Feed: {
+        where: {
+          version: {
+            gt: prevVersion,
+          },
+          ...(prevVersion === 0 ? { deleted: false } : {}),
+        },
+        select: {
+          id: true,
+          type: true,
+          deleted: true,
+        },
+      },
+    },
+  })
 
-    if (!guild) {
-      return json({ error: "Guild not found" })
-    }
+  if (!guild) {
+    return json({ error: "Guild not found" })
+  }
 
-    const clients = guild.ClientGroup[0]?.Client ?? []
-    const channels = guild.Channel ?? []
-    const feeds = guild.Feed ?? []
-    const user = guild.User[0]
+  const clients = guild.ClientGroup[0]?.Client ?? []
+  const channels = guild.Channel ?? []
+  const feeds = guild.Feed ?? []
+  const user = guild.User[0]
 
-    if (!user) {
-      return json({ error: "Guild not found" })
-    }
+  if (!user) {
+    return json({ error: "Guild not found" })
+  }
 
-    const totalCount = 2 + clients.length + channels.length + feeds.length
+  const totalCount = 2 + clients.length + channels.length + feeds.length
 
-    console.error({
-      totalCount,
-      clients: clients.length,
-      channels: channels.length,
-      feeds: feeds.length,
-    })
+  console.error({
+    totalCount,
+    clients: clients.length,
+    channels: channels.length,
+    feeds: feeds.length,
+  })
 
-    return json({
+  const compressed = deflate(
+    JSON.stringify({
       cookie: guild.version,
       lastMutationIDChanges: pipe(
         clients,
@@ -138,6 +142,8 @@ export const app = route.post(
         ),
         toArray,
       ),
-    } satisfies PullResponseOKV1)
-  },
-)
+    } satisfies PullResponseOKV1),
+  )
+
+  return c.newResponse(compressed)
+}

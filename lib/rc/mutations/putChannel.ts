@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client"
 import type { WriteTransaction } from "replicache"
 
-export const createChannel = async (
+export const putChannel = async (
   tx: WriteTransaction,
   {
     id,
@@ -17,6 +17,5 @@ export const createChannel = async (
     name,
     parentId: parentId ?? null,
     position,
-    deleted: false,
   })
 }

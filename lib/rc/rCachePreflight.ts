@@ -1,6 +1,6 @@
 import { isServer } from "utils/isServer"
 
-export const rCachePreflight = () => {
+export const rc = () => {
   if (isServer()) return
   const { fetch: originalFetch } = window
 

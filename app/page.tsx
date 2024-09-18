@@ -23,7 +23,8 @@ export default function Page() {
               redirectUrl: `${getBaseURL()}${REDIRECT_PATH}`,
               permissions: "536870912",
               responseType: "code",
-              scope: ["bot", "identify"].join(" "),
+              scope: ["identify", "bot"].join(" "),
+              // integration_type: "1",
             })
 
             console.log(result)

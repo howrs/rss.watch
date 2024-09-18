@@ -1,5 +1,6 @@
 "use client"
 
+import { getChannels } from "@/app/a/[[...route]]/fns/getChannels"
 import { client } from "@/components/QueryProvider"
 import { Button } from "@/components/ui/button"
 import { useRCache } from "@/hooks/useRCache"
@@ -17,13 +18,11 @@ export default function Page() {
 
   const channels = useSubscribe(
     r,
-    async (tx) => {
-      const list = await tx
+    (tx) =>
+      tx
         .scan<Omit<Channel, "createdAt" | "updatedAt">>({ prefix: "channel/" })
         .entries()
-        .toArray()
-      return list.filter(([_, v]) => !v.deleted)
-    },
+        .toArray(),
     { default: [] },
   )
 
@@ -58,7 +57,7 @@ export default function Page() {
       <div className="">
         <Button
           onClick={() => {
-            m.createChannel({
+            m.putChannel({
               id: uuid(),
               name: "test channel",
               position: channels.length,
@@ -72,7 +71,6 @@ export default function Page() {
       <div className="flex flex-col font-mono text-xs">
         {pipe(
           channels,
-          // filter(([_, v]) => !v.deleted),
           sort(([, a], [_, b]) => a.id.localeCompare(b.id)),
           map(([k, v]) => (
             <div key={k} className="flex">
@@ -81,7 +79,7 @@ export default function Page() {
                 className="h-4 w-fit text-xs"
                 variant="link"
                 onClick={() => {
-                  m.deleteChannel(k)
+                  m.delChannel(k)
                 }}
               >
                 del

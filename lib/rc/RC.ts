@@ -3,13 +3,13 @@ import { syncing } from "@/hooks/useSyncing"
 import { mutators } from "@/lib/rc/mutators"
 import { puller } from "@/lib/rc/puller"
 import { pusher } from "@/lib/rc/pusher"
-import { rCachePreflight } from "@/lib/rc/rCachePreflight"
+import { rc } from "@/lib/rc/rCachePreflight"
 import { memoize } from "@fxts/core"
 import Cookies from "js-cookie"
 import ms from "ms"
 import { Replicache } from "replicache"
 
-rCachePreflight()
+rc()
 
 export const RC = memoize((g: string) => {
   const userId = Cookies.get("user_id")

@@ -1,4 +1,4 @@
-import { app as route } from "@/app/a/[[...route]]/p"
+import { app as route } from "@/app/a/[[...route]]/o"
 import { vValidator } from "@hono/valibot-validator"
 import { db } from "prisma/db"
 import { object, string } from "valibot"

@@ -23,6 +23,7 @@ export const discordLogin = ({
   clientId,
   responseType = "token",
   permissions,
+  integration_type = "0",
 }: DiscordLoginPopupParams) => {
   return new Promise<OnSuccessTokenParams | OnSuccessCodeParams>(
     (resolve, reject) => {
@@ -31,6 +32,7 @@ export const discordLogin = ({
           client_id: clientId,
           redirect_uri: redirectUrl,
           response_type: responseType,
+          integration_type,
           scope,
           ...(!!permissions && { permissions }),
         },
@@ -187,4 +189,6 @@ type DiscordLoginPopupParams = {
   scope?: string
 
   permissions?: string
+
+  integration_type?: string
 }

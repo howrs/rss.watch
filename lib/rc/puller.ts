@@ -1,3 +1,5 @@
+import { c } from "@/app/a/[[...route]]/hc"
+import { deflate, inflate } from "pako"
 import type { PullResponseOKV1, Puller } from "replicache"
 
 export const puller: Puller = async (body) => {
@@ -18,19 +20,24 @@ export const puller: Puller = async (body) => {
 
   const g = new URLSearchParams(location.search).get("g")!
 
-  const res = await fetch(`/a/l`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const compressed = deflate(
+    JSON.stringify({
       g,
       clientGroupID,
       cookie,
     }),
-  })
+  )
 
-  const response: PullResponseOKV1 = await res.json()
+  const res = await c.o.$post(
+    {},
+    {
+      init: { body: compressed },
+    },
+  )
+
+  const response: PullResponseOKV1 = JSON.parse(
+    inflate(await res.arrayBuffer(), { to: "string" }),
+  )
 
   return {
     httpRequestInfo: {
