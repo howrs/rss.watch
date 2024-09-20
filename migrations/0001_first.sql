@@ -1,18 +1,19 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "username" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "avatar" TEXT,
-    "guildId" TEXT NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "User_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "Guild" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "discordId" TEXT NOT NULL,
+    "icon" TEXT,
     "name" TEXT NOT NULL,
     "version" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,6 +89,14 @@ CREATE TABLE "Webhook" (
     CONSTRAINT "Webhook_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "_GuildToUser" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+    CONSTRAINT "_GuildToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_GuildToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Guild_discordId_key" ON "Guild"("discordId");
 
@@ -111,3 +120,9 @@ CREATE UNIQUE INDEX "Webhook_channelId_key" ON "Webhook"("channelId");
 
 -- CreateIndex
 CREATE INDEX "Webhook_version_guildId_idx" ON "Webhook"("version", "guildId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_GuildToUser_AB_unique" ON "_GuildToUser"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_GuildToUser_B_index" ON "_GuildToUser"("B");

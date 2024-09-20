@@ -1,13 +1,14 @@
+import { mutator } from "@/app/a/[[...route]]/mutator"
 import { poke } from "@/lib/poke"
+import { mutators } from "@/lib/rc/mutators"
 import { indexBy, keys, pipe } from "@fxts/core"
 import type { Prisma } from "@prisma/client"
-import { cookies } from "next/headers"
-import { db } from "prisma/db"
-import { any, array, number, object, string, parse, picklist } from "valibot"
-import { inflate } from "pako"
+import { COOKIE } from "constants/cookie"
 import type { Context } from "hono"
-import { mutators } from "@/lib/rc/mutators"
-import { mutator } from "@/app/a/[[...route]]/mutator"
+import { cookies } from "next/headers"
+import { inflate } from "pako"
+import { db } from "prisma/db"
+import { any, array, number, object, parse, picklist, string } from "valibot"
 
 const pSchema = object({
   g: string(),
@@ -34,7 +35,7 @@ export const p = async (c: Context) => {
 
   const { clientGroupID, mutations, g: guildId } = body
 
-  const userId = cookies().get("user_id")?.value
+  const userId = cookies().get(COOKIE.USER_ID)?.value
 
   if (!userId) {
     return c.redirect("/")

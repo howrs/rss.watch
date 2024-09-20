@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.1/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.9.2/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
@@ -12,7 +12,9 @@
         },
         "noUselessElse": "off",
         "noNonNullAssertion": "warn",
-        "useConst": "off"
+        "useConst": "off",
+        "useNumberNamespace": "off",
+        "useSelfClosingElements": "off"
       },
       "correctness": {
         "noUnusedVariables": "warn",

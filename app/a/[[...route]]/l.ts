@@ -1,5 +1,6 @@
 import { getEntityKey } from "@/lib/rc/getEntityKey"
 import { fromEntries, map, pipe, toArray } from "@fxts/core"
+import { COOKIE } from "constants/cookie"
 import type { Context } from "hono"
 import { cookies } from "next/headers"
 import { deflate, inflate } from "pako"
@@ -26,7 +27,7 @@ export const l = async (c: Context) => {
 
   const prevVersion = cookie ?? 0
 
-  const userId = cookies().get("user_id")?.value
+  const userId = cookies().get(COOKIE.USER_ID)?.value
 
   if (!userId) {
     return redirect("/")
@@ -39,7 +40,17 @@ export const l = async (c: Context) => {
     include: {
       User: {
         where: {
-          id: userId,
+          // id: userId,
+          version: {
+            gt: prevVersion,
+          },
+          ...(prevVersion === 0 ? { deleted: false } : {}),
+        },
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          deleted: true,
         },
       },
       ClientGroup: {
@@ -99,11 +110,7 @@ export const l = async (c: Context) => {
   const clients = guild.ClientGroup[0]?.Client ?? []
   const channels = guild.Channel ?? []
   const feeds = guild.Feed ?? []
-  const user = guild.User[0]
-
-  if (!user) {
-    return json({ error: "Guild not found" })
-  }
+  const users = guild.User ?? []
 
   const totalCount = 2 + clients.length + channels.length + feeds.length
 
@@ -122,26 +129,39 @@ export const l = async (c: Context) => {
         map(({ id, lastMutationID }) => [id, lastMutationID] as const),
         fromEntries,
       ),
-      patch: pipe(
-        [...channels, ...feeds],
-        map(({ deleted, id, ...data }) =>
-          deleted
-            ? ({
-                op: "del",
-                key: getEntityKey({ id, ...data }),
-              } satisfies PatchOperation)
-            : ({
-                op: "put",
-                key: getEntityKey({ id, ...data }),
-                value: {
-                  id,
-                  deleted,
-                  ...data,
-                },
-              } satisfies PatchOperation),
+      patch: [
+        ...pipe(
+          [...channels, ...feeds, ...users],
+          map(({ deleted, id, ...data }) =>
+            deleted
+              ? ({
+                  op: "del",
+                  key: getEntityKey({ id, ...data }),
+                } satisfies PatchOperation)
+              : ({
+                  op: "put",
+                  key: getEntityKey({ id, ...data }),
+                  value: {
+                    id,
+                    ...data,
+                  },
+                } satisfies PatchOperation),
+          ),
+          toArray,
         ),
-        toArray,
-      ),
+        ...(guild.version > prevVersion
+          ? [
+              {
+                op: "put",
+                key: "guild",
+                value: {
+                  id: guild.id,
+                  name: guild.name,
+                },
+              } satisfies PatchOperation,
+            ]
+          : []),
+      ],
     } satisfies PullResponseOKV1),
   )
 

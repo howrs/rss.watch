@@ -1,6 +1,7 @@
 import "server-only"
 
 import { env } from "@/lib/env"
+import { isArray } from "@fxts/core"
 
 export const getChannels = async (guild_id: string): Promise<Channel[]> => {
   const data = await fetch(
@@ -10,9 +11,12 @@ export const getChannels = async (guild_id: string): Promise<Channel[]> => {
     },
   ).then<Channel[]>((r) => r.json())
 
+  if (!isArray(data)) {
+    console.error(data)
+    throw new Error("Invalid response")
+  }
+
   return data
-    ?.filter((channel) => channel.type !== 2)
-    .sort((a, b) => a.position - b.position)
 }
 
 interface Channel {

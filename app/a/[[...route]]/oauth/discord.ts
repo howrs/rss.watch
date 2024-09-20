@@ -4,10 +4,17 @@ import { getOAuth2Token } from "@/app/a/[[...route]]/oauth/getOAuth2Token"
 import { nanoid } from "@/utils/ids"
 import { isProd } from "@/utils/isProd"
 import { vValidator } from "@hono/valibot-validator"
+import { COOKIE } from "constants/cookie"
+import { JWT_SECRET } from "constants/secrets"
 import { EncryptJWT } from "jose"
 import { cookies } from "next/headers"
 import { db } from "prisma/db"
 import { object, string } from "valibot"
+
+export const JWTSchema = object({
+  guild_id: string(),
+  access_token: string(),
+})
 
 export const app = route.get(
   "/oauth/discord",
@@ -28,8 +35,6 @@ export const app = route.get(
     const { code } = req.valid("query")
 
     const res = await getOAuth2Token(code)
-
-    console.log(res)
 
     const {
       access_token,
@@ -68,8 +73,9 @@ export const app = route.get(
             prisma.user.create({
               data: {
                 id: me.id,
-                username,
+                name: username,
                 avatar,
+                version: 1,
                 Guild: {
                   connectOrCreate: {
                     where: { discordId: id },
@@ -85,24 +91,23 @@ export const app = route.get(
         ),
     ])
 
-    const key = crypto.getRandomValues(new Uint8Array(32))
-
-    const jwt = await new EncryptJWT({
-      userId: user.id,
+    const token = await new EncryptJWT({
+      // userId: user.id,
       access_token,
+      guild_id: id,
     })
       .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
       .setExpirationTime(`${expires_in}s`)
-      .encrypt(key)
+      .encrypt(JWT_SECRET)
 
-    cookies().set("access_token", jwt, {
+    cookies().set(COOKIE.TOKEN, token, {
       maxAge: expires_in,
       sameSite: "strict",
       secure: isProd(),
       httpOnly: true,
     })
 
-    cookies().set("user_id", user.id, {
+    cookies().set(COOKIE.USER_ID, user.id, {
       maxAge: expires_in,
       sameSite: "strict",
       secure: isProd(),

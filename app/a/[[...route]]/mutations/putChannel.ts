@@ -28,6 +28,7 @@ export const putChannel = ({ guildId, version, args }: Param) => {
         name: args.name,
         parentId: args.parentId,
         position: args.position,
+        deleted: false,
         version,
       },
     }),

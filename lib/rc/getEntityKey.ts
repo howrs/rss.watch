@@ -9,6 +9,9 @@ export const getEntityKey = (entity: any) => {
   if ("value" in entity) {
     return `feed/${entity.id}`
   }
+  if ("avatar" in entity) {
+    return `user/${entity.id}`
+  }
 
   throw new Error("Unknown entity")
 }

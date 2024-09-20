@@ -1,4 +1,4 @@
-import { app } from "@/app/a/[[...route]]/oauth/discord"
+import { app } from "@/app/a/[[...route]]/channels"
 import { handle } from "hono/vercel"
 
 export const runtime = "edge"

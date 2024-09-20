@@ -1,7 +1,7 @@
 import { c } from "@/app/a/[[...route]]/hc"
 import { client } from "@/components/QueryProvider"
-import type { Pusher } from "replicache"
 import { deflate } from "pako"
+import type { Pusher } from "replicache"
 
 export const pusher: Pusher = async (body) => {
   if (!("clientGroupID" in body)) {
@@ -30,6 +30,7 @@ export const pusher: Pusher = async (body) => {
       mutations,
     }),
   )
+  console.log("push: ", mutations)
 
   const res = await c.o.$post(
     {},

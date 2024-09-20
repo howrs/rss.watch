@@ -39,6 +39,8 @@ export const puller: Puller = async (body) => {
     inflate(await res.arrayBuffer(), { to: "string" }),
   )
 
+  console.log("patch: ", response.patch)
+
   return {
     httpRequestInfo: {
       httpStatusCode: res.status,
