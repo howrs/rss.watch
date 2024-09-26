@@ -45,6 +45,7 @@ CREATE TABLE "Client" (
 -- CreateTable
 CREATE TABLE "Channel" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "discordId" TEXT NOT NULL,
     "type" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "position" INTEGER NOT NULL,
@@ -62,6 +63,7 @@ CREATE TABLE "Channel" (
 CREATE TABLE "Feed" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "value" TEXT NOT NULL,
+    "position" INTEGER NOT NULL,
     "type" TEXT,
     "faviconUrl" TEXT,
     "xmlUrl" TEXT,
@@ -108,6 +110,9 @@ CREATE INDEX "Client_id_clientGroupId_idx" ON "Client"("id", "clientGroupId");
 
 -- CreateIndex
 CREATE INDEX "Client_version_clientGroupId_idx" ON "Client"("version", "clientGroupId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Channel_discordId_key" ON "Channel"("discordId");
 
 -- CreateIndex
 CREATE INDEX "Channel_version_guildId_idx" ON "Channel"("version", "guildId");

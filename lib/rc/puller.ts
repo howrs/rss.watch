@@ -1,4 +1,5 @@
 import { c } from "@/app/a/[[...route]]/hc"
+import { getSearchParams } from "@/hooks/useSearchParams"
 import { deflate, inflate } from "pako"
 import type { PullResponseOKV1, Puller } from "replicache"
 
@@ -18,7 +19,7 @@ export const puller: Puller = async (body) => {
 
   const { clientGroupID, cookie } = body
 
-  const g = new URLSearchParams(location.search).get("g")!
+  const { g } = getSearchParams()
 
   const compressed = deflate(
     JSON.stringify({

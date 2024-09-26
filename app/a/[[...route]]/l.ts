@@ -84,6 +84,7 @@ export const l = async (c: Context) => {
           name: true,
           parentId: true,
           position: true,
+          discordId: true,
           deleted: true,
         },
       },
@@ -97,6 +98,11 @@ export const l = async (c: Context) => {
         select: {
           id: true,
           type: true,
+          value: true,
+          faviconUrl: true,
+          xmlUrl: true,
+          channelId: true,
+          position: true,
           deleted: true,
         },
       },
@@ -149,14 +155,17 @@ export const l = async (c: Context) => {
           ),
           toArray,
         ),
-        ...(guild.version > prevVersion
+        ...(prevVersion === 0
           ? [
               {
                 op: "put",
                 key: "guild",
                 value: {
                   id: guild.id,
+                  discordId: guild.discordId,
                   name: guild.name,
+                  icon: guild.icon,
+                  version: guild.version,
                 },
               } satisfies PatchOperation,
             ]

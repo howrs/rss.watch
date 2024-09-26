@@ -18,7 +18,6 @@ model User {
   deleted Boolean @default(false)
 
   Guild Guild[]
-  // guildId String
 
   ClientGroup ClientGroup[]
 
@@ -82,6 +81,8 @@ model Client {
 model Channel {
   id String @id
 
+  discordId String @unique
+
   type     Int
   name     String
   position Int
@@ -107,7 +108,8 @@ model Channel {
 model Feed {
   id String @id
 
-  value String
+  value    String
+  position Int
 
   type       String?
   faviconUrl String?

@@ -1,5 +1,6 @@
 import { c } from "@/app/a/[[...route]]/hc"
 import { client } from "@/components/QueryProvider"
+import { getSearchParams } from "@/hooks/useSearchParams"
 import { deflate } from "pako"
 import type { Pusher } from "replicache"
 
@@ -21,7 +22,7 @@ export const pusher: Pusher = async (body) => {
 
   const { clientGroupID, mutations } = body
 
-  const g = new URLSearchParams(location.search).get("g")!
+  const { g } = getSearchParams()
 
   const compressed = deflate(
     JSON.stringify({

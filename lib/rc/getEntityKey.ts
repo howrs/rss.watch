@@ -3,7 +3,7 @@ export const getEntityKey = (entity: any) => {
     throw new Error("id is required")
   }
 
-  if ("position" in entity) {
+  if ("parentId" in entity) {
     return `channel/${entity.id}`
   }
   if ("value" in entity) {

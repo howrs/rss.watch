@@ -1,35 +1,38 @@
 import type { Prisma } from "@prisma/client"
 import { db } from "prisma/db"
 
-type Param = {
+export type Param = {
   version: number
   guildId: string
-  args: Omit<Prisma.ChannelUncheckedCreateInput, "guildId">
+  args: Omit<Prisma.FeedUncheckedCreateInput, "guildId">
 }
 
-export const putChannel = ({ guildId, version, args }: Param) => {
+export const putFeed = ({ guildId, version, args }: Param) => {
   const { prisma } = db
 
   return [
-    prisma.channel.upsert({
+    prisma.feed.upsert({
       where: {
-        discordId: args.discordId,
+        id: args.id,
       },
       create: {
         id: args.id,
         type: args.type,
-        name: args.name,
-        parentId: args.parentId,
         position: args.position,
-        discordId: args.discordId,
+        channelId: args.channelId,
+        value: args.value,
+        faviconUrl: args.faviconUrl,
+        xmlUrl: args.xmlUrl,
         guildId,
         version,
       },
       update: {
         type: args.type,
-        name: args.name,
-        parentId: args.parentId,
         position: args.position,
+        channelId: args.channelId,
+        value: args.value,
+        faviconUrl: args.faviconUrl,
+        xmlUrl: args.xmlUrl,
         deleted: false,
         version,
       },

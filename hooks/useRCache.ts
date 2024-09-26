@@ -1,17 +1,17 @@
+import { useSearchParam } from "@/hooks/useSearchParams"
 import { RC } from "@/lib/rc/RC"
 import type { mutators } from "@/lib/rc/mutators"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { COOKIE } from "constants/cookie"
 import { PARTY_HOST } from "constants/urls"
 import Cookies from "js-cookie"
-import { redirect, useSearchParams } from "next/navigation"
+import { redirect } from "next/navigation"
 import PartySocket from "partysocket"
 import type { Replicache } from "replicache"
 import { isServer } from "utils/isServer"
 
 export const useRCache = () => {
-  const search = useSearchParams()
-  const g = search.get("g")!
+  const { g } = useSearchParam()
 
   const { data: r } = useSuspenseQuery({
     queryKey: ["replicache"],
@@ -38,7 +38,6 @@ export const useRCache = () => {
       ws.onmessage = (e) => {
         const { data } = e
         if (typeof data === "string" && data.includes("poke")) {
-          console.log("pulling..")
           r.pull()
         }
       }

@@ -1,6 +1,12 @@
 import { SideNav } from "@/components/SideNav"
 import { Button } from "@/components/ui/button"
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useMe } from "@/hooks/useMe"
+import { useSidePanel } from "@/hooks/useSidePanel"
+import { useSyncChannels } from "@/hooks/useSyncChannels"
+import { cn } from "@/lib/utils"
 import { PanelLeft } from "lucide-react"
 import Image from "next/image"
 
@@ -18,9 +27,13 @@ export const Header = () => {
     me: { avatar, name, id },
   } = useMe()
 
+  useSyncChannels()
+
+  const [open, setOpen] = useSidePanel()
+
   return (
-    <header className="flex h-10 items-center">
-      <Drawer direction="left">
+    <header className="flex h-10 items-center border-b-[0.5px]">
+      <Drawer direction="left" open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
           <Button
             variant="ghost"
@@ -31,19 +44,23 @@ export const Header = () => {
           </Button>
         </DrawerTrigger>
         <DrawerContent
-          className="h-full w-56 min-w-56 rounded-none border-none"
-          style={{
-            borderRight: "0.5px solid",
-            borderColor: "lch(16.16 3.54 272)",
-          }}
+          className={cn(
+            "h-full w-56 min-w-56 rounded-none border-t-0 border-b-0 border-l-0",
+            "border-r-[0.5px]",
+            "!duration-200 !ease-[cubic-bezier(.1,1,.2,1)]",
+          )}
+          asChild
         >
-          <nav className="px-3">
+          <aside className="px-3">
+            <DrawerTitle className="sr-only">Side Panel</DrawerTitle>
+            <DrawerDescription className="sr-only" />
             <div className="h-10" />
             <div className="h-10">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="gap-1.5" variant="ghost">
                     <Image
+                      priority
                       src={`https://cdn.discordapp.com/avatars/${id}/${avatar}.webp?size=64`}
                       className="h-4 w-4 rounded-full"
                       unoptimized
@@ -66,7 +83,7 @@ export const Header = () => {
             </div>
 
             <SideNav />
-          </nav>
+          </aside>
         </DrawerContent>
       </Drawer>
     </header>

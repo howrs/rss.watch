@@ -17,8 +17,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-gg-sans)"],
+      },
       colors: {
-        border: "hsl(var(--border))",
+        border: "oklch(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",

@@ -9,13 +9,17 @@ export const putChannel = async (
     name,
     parentId,
     position,
-  }: Omit<Prisma.ChannelCreateInput, "guild">,
+    discordId,
+    webhookId,
+  }: Omit<Prisma.ChannelUncheckedCreateInput, "guildId">,
 ) => {
   await tx.set(`channel/${id}`, {
     id,
     type,
     name,
-    parentId: parentId ?? null,
     position,
+    parentId: parentId ?? null,
+    discordId,
+    webhookId,
   })
 }

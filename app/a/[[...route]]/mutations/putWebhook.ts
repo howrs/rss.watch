@@ -1,4 +1,4 @@
-import type { Param } from "@/app/a/[[...route]]/mutations/putChannel"
+import type { Param } from "@/app/a/[[...route]]/mutations/putFeed"
 import { db } from "prisma/db"
 
 export const putWebhook = ({ guildId, version, args }: Param) => {

@@ -27,15 +27,9 @@ export default function Layout({ children }: Props) {
 const RCache = ({ children }: PropsWithChildren) => {
   const { r } = useRCache()
 
-  const isEmpty = useSubscribe(
-    r,
-    async (tx) => {
-      return !(await tx.has("guild"))
-    },
-    { default: true },
-  )
+  const isExist = useSubscribe(r, (tx) => tx.has("guild"), { default: true })
 
-  if (isEmpty) {
+  if (!isExist) {
     return <FullScreenLoader />
   }
 

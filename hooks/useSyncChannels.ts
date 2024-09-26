@@ -1,6 +1,7 @@
 import { c } from "@/app/a/[[...route]]/hc"
 import { useChannels } from "@/hooks/useChannels"
 import { useRCache } from "@/hooks/useRCache"
+import { nanoid } from "@/utils/ids"
 import {
   concurrent,
   differenceBy,
@@ -23,47 +24,106 @@ export const useSyncChannels = () => {
   useQuery({
     queryKey: ["syncChannels"],
     queryFn: async () => {
-      const newChannels = (await c.channels.$get().then((r) => r.json())).map(
-        (channel) =>
-          ({
-            id: channel.id,
-            name: channel.name,
-            parentId: channel.parent_id || null,
-            position: channel.position,
-            type: channel.type,
-          }) satisfies Omit<Prisma.ChannelCreateInput, "guild">,
-      )
+      const allChannels = await c.channels
+        .$get()
+        .then((r) => r.json())
+        .then((channels) =>
+          channels.map(
+            (channel) =>
+              ({
+                id: nanoid(),
+                name: channel.name,
+                parentId: channel.parent_id,
+                position: channel.position,
+                type: channel.type,
+                discordId: channel.id,
+              }) satisfies Omit<Prisma.ChannelUncheckedCreateInput, "guildId">,
+          ),
+        )
 
-      const existingChannels = channels.map(([, v]) => v)
+      const existingChannels = channels
+        .map(([, v]) => v)
+        .map(
+          (channel) =>
+            ({
+              id: channel.id,
+              name: channel.name,
+              parentId: channel.parentId,
+              position: channel.position,
+              type: channel.type,
+              discordId: channel.discordId,
+            }) satisfies Omit<Prisma.ChannelUncheckedCreateInput, "guildId">,
+        )
 
       const indexed = pipe(
         existingChannels,
-        indexBy(({ id }) => id),
+        indexBy(({ discordId }) => discordId),
       )
+
+      const newChannels = pipe(
+        allChannels,
+        (newChannels) =>
+          differenceBy(
+            ({ discordId }) => discordId,
+            existingChannels,
+            newChannels,
+          ),
+        toArray,
+      )
+
+      const changedChannels = pipe(
+        allChannels,
+        (newChannels) =>
+          intersectionBy(
+            ({ discordId }) => discordId,
+            existingChannels,
+            newChannels,
+          ),
+        filter(
+          (channel) =>
+            !isEqual(
+              { ...channel, id: null },
+              { ...indexed[channel.discordId], id: null },
+            ),
+        ),
+        toArray,
+      )
+
+      const deletedChannels = pipe(
+        existingChannels,
+        (channels) =>
+          differenceBy(({ discordId }) => discordId, allChannels, channels),
+        toArray,
+      )
+
+      console.log({
+        newChannels,
+        changedChannels,
+        deletedChannels,
+      })
 
       await Promise.all([
         pipe(
           newChannels,
-          (newChannels) =>
-            differenceBy(({ id }) => id, existingChannels, newChannels),
           toAsync,
           map((channel) => m.putChannel(channel)),
-          concurrent(newChannels.length),
+          concurrent(allChannels.length),
           toArray,
         ),
         pipe(
-          newChannels,
-          (newChannels) =>
-            intersectionBy(({ id }) => id, existingChannels, newChannels),
-          filter((channel) => !isEqual(channel, indexed[channel.id])),
+          changedChannels,
           toAsync,
-          map((channel) => m.putChannel(channel)),
-          concurrent(newChannels.length),
+          map((channel) =>
+            m.putChannel({
+              ...channel,
+              id: indexed[channel.discordId]!.id,
+            }),
+          ),
+          concurrent(allChannels.length),
           toArray,
         ),
         pipe(
-          existingChannels,
-          (channels) => differenceBy(({ id }) => id, newChannels, channels),
+          deletedChannels,
           toAsync,
           map((channel) => m.delChannel(`channel/${channel.id}`)),
           concurrent(channels.length),
@@ -74,6 +134,4 @@ export const useSyncChannels = () => {
       return null
     },
   })
-
-  // return { data: channels }
 }

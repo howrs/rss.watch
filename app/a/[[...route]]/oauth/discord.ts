@@ -6,6 +6,7 @@ import { isProd } from "@/utils/isProd"
 import { vValidator } from "@hono/valibot-validator"
 import { COOKIE } from "constants/cookie"
 import { JWT_SECRET } from "constants/secrets"
+import { isEqual } from "es-toolkit"
 import { EncryptJWT } from "jose"
 import { cookies } from "next/headers"
 import { db } from "prisma/db"
@@ -40,7 +41,7 @@ export const app = route.get(
       access_token,
       token_type,
       expires_in,
-      guild: { id, name },
+      guild: { id, name, icon },
     } = res
 
     const me = await getMe(res)
@@ -51,16 +52,32 @@ export const app = route.get(
         .findUnique({
           where: { discordId: id },
         })
-        .then(
-          (g) =>
-            g ||
-            prisma.guild.create({
-              data: {
-                id: nanoid(),
-                discordId: id,
-                name,
-              },
-            }),
+        .then((g) =>
+          g
+            ? (async () => {
+                const isUpdated = !isEqual(
+                  { name, icon },
+                  { name: g.name, icon: g.icon },
+                )
+
+                if (isUpdated) {
+                  await prisma.guild.update({
+                    where: { id: g.id },
+                    data: { name, icon },
+                  })
+                }
+
+                return g
+              })()
+            : prisma.guild.create({
+                data: {
+                  id: nanoid(),
+                  discordId: id,
+                  icon,
+                  version: 1,
+                  name,
+                },
+              }),
         ),
 
       prisma.user
@@ -77,14 +94,7 @@ export const app = route.get(
                 avatar,
                 version: 1,
                 Guild: {
-                  connectOrCreate: {
-                    where: { discordId: id },
-                    create: {
-                      id: nanoid(),
-                      discordId: id,
-                      name,
-                    },
-                  },
+                  connect: { discordId: id },
                 },
               },
             }),
@@ -114,10 +124,6 @@ export const app = route.get(
       httpOnly: false,
     })
 
-    return c.redirect(
-      `/dash?${new URLSearchParams({
-        g: guild.id,
-      })}`,
-    )
+    return c.redirect(`/d?${guild.id}`)
   },
 )

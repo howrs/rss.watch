@@ -6,11 +6,11 @@ type Param = {
   args: string
 }
 
-export const delChannel = ({ guildId, version, args }: Param) => {
+export const delFeed = ({ guildId, version, args }: Param) => {
   const { prisma } = db
 
   return [
-    prisma.channel.updateMany({
+    prisma.feed.updateMany({
       where: {
         id: args.split("/")[1],
       },
