@@ -63,7 +63,8 @@ CREATE TABLE "Channel" (
 CREATE TABLE "Feed" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "value" TEXT NOT NULL,
-    "position" INTEGER NOT NULL,
+    "order" REAL NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
     "type" TEXT,
     "faviconUrl" TEXT,
     "xmlUrl" TEXT,
@@ -118,13 +119,22 @@ CREATE UNIQUE INDEX "Channel_discordId_key" ON "Channel"("discordId");
 CREATE INDEX "Channel_version_guildId_idx" ON "Channel"("version", "guildId");
 
 -- CreateIndex
+CREATE INDEX "Channel_updatedAt_idx" ON "Channel"("updatedAt");
+
+-- CreateIndex
 CREATE INDEX "Feed_version_guildId_idx" ON "Feed"("version", "guildId");
+
+-- CreateIndex
+CREATE INDEX "Feed_updatedAt_idx" ON "Feed"("updatedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Webhook_channelId_key" ON "Webhook"("channelId");
 
 -- CreateIndex
 CREATE INDEX "Webhook_version_guildId_idx" ON "Webhook"("version", "guildId");
+
+-- CreateIndex
+CREATE INDEX "Webhook_updatedAt_idx" ON "Webhook"("updatedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_GuildToUser_AB_unique" ON "_GuildToUser"("A", "B");

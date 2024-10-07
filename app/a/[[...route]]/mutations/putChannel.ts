@@ -1,14 +1,22 @@
-import type { Prisma } from "@prisma/client"
+import { createWebhook } from "@/app/a/[[...route]]/fns/createWebhook"
+import { uuid } from "@/utils/ids"
+import type { Guild, Prisma } from "@prisma/client"
 import { db } from "prisma/db"
 
-type Param = {
+export type MutatorDefaultParams = {
   version: number
-  guildId: string
+  guild: Guild
+}
+
+type Param = MutatorDefaultParams & {
   args: Omit<Prisma.ChannelUncheckedCreateInput, "guildId">
 }
 
-export const putChannel = ({ guildId, version, args }: Param) => {
+export const putChannel = async ({ guild, version, args }: Param) => {
   const { prisma } = db
+  const guildId = guild.id
+
+  const webhook = args.type === 0 ? await createWebhook(args.discordId) : null
 
   return [
     prisma.channel.upsert({
@@ -24,6 +32,18 @@ export const putChannel = ({ guildId, version, args }: Param) => {
         discordId: args.discordId,
         guildId,
         version,
+        ...(webhook
+          ? {
+              Webhook: {
+                create: {
+                  id: uuid(),
+                  url: webhook.url,
+                  guildId,
+                  version,
+                },
+              },
+            }
+          : {}),
       },
       update: {
         type: args.type,

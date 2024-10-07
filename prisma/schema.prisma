@@ -103,13 +103,15 @@ model Channel {
   updatedAt DateTime @updatedAt
 
   @@index([version, guildId])
+  @@index([updatedAt])
 }
 
 model Feed {
   id String @id
 
-  value    String
-  position Int
+  value   String
+  order   Float
+  enabled Boolean @default(true)
 
   type       String?
   faviconUrl String?
@@ -128,6 +130,7 @@ model Feed {
   updatedAt DateTime @updatedAt
 
   @@index([version, guildId])
+  @@index([updatedAt])
 }
 
 model Webhook {
@@ -148,4 +151,5 @@ model Webhook {
   updatedAt DateTime @updatedAt
 
   @@index([version, guildId])
+  @@index([updatedAt])
 }

@@ -1,12 +1,11 @@
+import type { MutatorDefaultParams } from "@/app/a/[[...route]]/mutations/putChannel"
 import { db } from "prisma/db"
 
 type Param = {
-  version: number
-  guildId: string
   args: string
-}
+} & MutatorDefaultParams
 
-export const delChannel = ({ guildId, version, args }: Param) => {
+export const delChannel = async ({ guild, version, args }: Param) => {
   const { prisma } = db
 
   return [

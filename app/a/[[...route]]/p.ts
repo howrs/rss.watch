@@ -1,7 +1,15 @@
 import { mutator } from "@/app/a/[[...route]]/mutator"
 import { poke } from "@/lib/poke"
 import { mutators } from "@/lib/rc/mutators"
-import { indexBy, keys, pipe } from "@fxts/core"
+import {
+  flatMap,
+  identity,
+  indexBy,
+  keys,
+  pipe,
+  toArray,
+  toAsync,
+} from "@fxts/core"
 import type { Prisma } from "@prisma/client"
 import { COOKIE } from "constants/cookie"
 import type { Context } from "hono"
@@ -49,6 +57,7 @@ export const p = async (c: Context) => {
     updatedAt: new Date(),
   }
 
+  const muts: Promise<Prisma.PrismaPromise<any>[]>[] = []
   const sqls: Prisma.PrismaPromise<any>[] = []
 
   const guild = await prisma.guild.findUnique({
@@ -121,65 +130,70 @@ export const p = async (c: Context) => {
       break
     }
 
-    sqls.push(...mutator[name]({ guildId, version: nextVersion, args }))
+    muts.push(mutator[name]({ guild, version: nextVersion, args }))
 
     client.lastMutationID = nextMutationID
   }
 
-  const sqlss: Prisma.PrismaPromise<any>[] = [
-    prisma.guild.updateMany({
-      where: {
-        id: guildId,
-      },
-      data: {
-        version: nextVersion,
-      },
-    }),
-    ...(guild?.ClientGroup[0]
-      ? []
-      : // prisma.clientGroup.updateMany({
-        //     where: {
-        //       id: clientGroup.id,
-        //     },
-        //     data: {
-        //       guildId,
-        //       userId,
-        //     },
-        //   })
-        [
-          prisma.clientGroup.create({
-            data: {
-              id: clientGroup.id,
-              guildId,
-              userId,
-            },
-          }),
-        ]),
+  const sqlss: Prisma.PrismaPromise<any>[] = (await Promise.all(muts)).flatMap(
+    identity,
+  )
 
-    ...[...new Set(mutations.map((c) => c.clientID))].map((id) =>
-      indexedClients[id]
-        ? prisma.client.updateMany({
-            where: {
-              id,
-            },
-            data: {
-              clientGroupId: clientGroup.id,
-              lastMutationID: lastMutationIDs.get(id) || 0,
-              version: nextVersion,
-            },
-          })
-        : prisma.client.create({
-            data: {
-              id,
-              clientGroupId: clientGroup.id,
-              lastMutationID: lastMutationIDs.get(id) || 0,
-              version: nextVersion,
-            },
-          }),
-    ),
-  ]
+  sqls.push(
+    ...[
+      ...sqlss,
+      prisma.guild.updateMany({
+        where: {
+          id: guildId,
+        },
+        data: {
+          version: nextVersion,
+        },
+      }),
+      ...(guild?.ClientGroup[0]
+        ? []
+        : // prisma.clientGroup.updateMany({
+          //     where: {
+          //       id: clientGroup.id,
+          //     },
+          //     data: {
+          //       guildId,
+          //       userId,
+          //     },
+          //   })
+          [
+            prisma.clientGroup.create({
+              data: {
+                id: clientGroup.id,
+                guildId,
+                userId,
+              },
+            }),
+          ]),
 
-  sqls.push(...sqlss)
+      ...[...new Set(mutations.map((c) => c.clientID))].map((id) =>
+        indexedClients[id]
+          ? prisma.client.updateMany({
+              where: {
+                id,
+              },
+              data: {
+                clientGroupId: clientGroup.id,
+                lastMutationID: lastMutationIDs.get(id) || 0,
+                version: nextVersion,
+              },
+            })
+          : prisma.client.create({
+              data: {
+                id,
+                clientGroupId: clientGroup.id,
+                lastMutationID: lastMutationIDs.get(id) || 0,
+                version: nextVersion,
+              },
+            }),
+      ),
+    ],
+  )
 
   await prisma.$transaction(sqls)
 

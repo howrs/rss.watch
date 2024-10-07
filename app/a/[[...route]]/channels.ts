@@ -13,8 +13,6 @@ export const app = route.get("/channels", async (c) => {
 
   const { guild_id } = parse(JWTSchema, payload)
 
-  console.log(payload, guild_id)
-
   const channels = await getChannels(guild_id)
 
   return c.json(channels)

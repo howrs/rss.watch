@@ -19,7 +19,7 @@ export const getChannels = async (guild_id: string): Promise<Channel[]> => {
   return data
 }
 
-interface Channel {
+export interface Channel {
   id: string
   type: number
   flags: number

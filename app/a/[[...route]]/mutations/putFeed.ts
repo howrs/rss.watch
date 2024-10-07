@@ -1,38 +1,46 @@
+import type { MutatorDefaultParams } from "@/app/a/[[...route]]/mutations/putChannel"
 import type { Prisma } from "@prisma/client"
 import { db } from "prisma/db"
 
 export type Param = {
-  version: number
-  guildId: string
   args: Omit<Prisma.FeedUncheckedCreateInput, "guildId">
-}
+} & MutatorDefaultParams
 
-export const putFeed = ({ guildId, version, args }: Param) => {
+export const putFeed = async ({
+  guild,
+  version,
+  args: { id, ...args },
+}: Param) => {
+  const guildId = guild.id
   const { prisma } = db
 
   return [
     prisma.feed.upsert({
       where: {
-        id: args.id,
+        id,
       },
       create: {
-        id: args.id,
-        type: args.type,
-        position: args.position,
-        channelId: args.channelId,
-        value: args.value,
-        faviconUrl: args.faviconUrl,
-        xmlUrl: args.xmlUrl,
+        id,
+        ...args,
+        // type: args.type,
+        // order: args.order,
+        // channelId: args.channelId,
+        // value: args.value,
+        // faviconUrl: args.faviconUrl,
+        // xmlUrl: args.xmlUrl,
+        // enabled: args.enabled,
         guildId,
         version,
       },
       update: {
-        type: args.type,
-        position: args.position,
-        channelId: args.channelId,
-        value: args.value,
-        faviconUrl: args.faviconUrl,
-        xmlUrl: args.xmlUrl,
+        ...args,
+        // type: args.type,
+        // order: args.order,
+        // channelId: args.channelId,
+        // value: args.value,
+        // faviconUrl: args.faviconUrl,
+        // xmlUrl: args.xmlUrl,
+        // enabled: args.enabled,
         deleted: false,
         version,
       },

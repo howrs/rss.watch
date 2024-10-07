@@ -19,10 +19,14 @@ import { useMe } from "@/hooks/useMe"
 import { useSidePanel } from "@/hooks/useSidePanel"
 import { useSyncChannels } from "@/hooks/useSyncChannels"
 import { cn } from "@/lib/utils"
-import { PanelLeft } from "lucide-react"
+import { COOKIE } from "constants/cookie"
+import Cookies from "js-cookie"
+import { LogOut, PanelLeft } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export const Header = () => {
+  const { push } = useRouter()
   const {
     me: { avatar, name, id },
   } = useMe()
@@ -74,10 +78,18 @@ export const Header = () => {
                 <DropdownMenuContent side="right" align="start">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
-                  <DropdownMenuItem>Team</DropdownMenuItem>
-                  <DropdownMenuItem>Subscription</DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="gap-1.5"
+                    onClick={() => {
+                      Cookies.remove(COOKIE.TOKEN)
+                      Cookies.remove(COOKIE.USER_ID)
+                      setOpen(false)
+                      push("/")
+                    }}
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Log out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

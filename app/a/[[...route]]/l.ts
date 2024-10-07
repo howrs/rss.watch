@@ -102,7 +102,22 @@ export const l = async (c: Context) => {
           faviconUrl: true,
           xmlUrl: true,
           channelId: true,
-          position: true,
+          order: true,
+          enabled: true,
+          deleted: true,
+        },
+      },
+      Webhook: {
+        where: {
+          version: {
+            gt: prevVersion,
+          },
+          ...(prevVersion === 0 ? { deleted: false } : {}),
+        },
+        select: {
+          id: true,
+          url: true,
+          channelId: true,
           deleted: true,
         },
       },
@@ -117,15 +132,12 @@ export const l = async (c: Context) => {
   const channels = guild.Channel ?? []
   const feeds = guild.Feed ?? []
   const users = guild.User ?? []
+  const webhooks = guild.Webhook ?? []
 
-  const totalCount = 2 + clients.length + channels.length + feeds.length
+  const totalCount =
+    2 + [...clients, ...feeds, ...users, ...channels, ...webhooks].length
 
-  console.error({
-    totalCount,
-    clients: clients.length,
-    channels: channels.length,
-    feeds: feeds.length,
-  })
+  console.error({ totalRead: totalCount })
 
   const compressed = deflate(
     JSON.stringify({
@@ -137,7 +149,7 @@ export const l = async (c: Context) => {
       ),
       patch: [
         ...pipe(
-          [...channels, ...feeds, ...users],
+          [...feeds, ...users, ...channels, ...webhooks],
           map(({ deleted, id, ...data }) =>
             deleted
               ? ({

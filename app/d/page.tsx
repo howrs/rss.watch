@@ -1,5 +1,6 @@
 "use client"
 
+import { FeedItem } from "@/app/d/FeedItem"
 import { client } from "@/components/QueryProvider"
 import { StatusBar } from "@/components/StatusBar"
 import { Button } from "@/components/ui/button"
@@ -10,15 +11,21 @@ import { useRCache } from "@/hooks/useRCache"
 import { useSearchParam } from "@/hooks/useSearchParams"
 import { useSyncing } from "@/hooks/useSyncing"
 import { uuid } from "@/utils/ids"
+import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge"
+import { getReorderDestinationIndex } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index"
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter"
+import { map, max } from "@fxts/core"
+import { pipe } from "@fxts/core"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import type { Feed } from "@prisma/client"
 import { useNetworkState } from "@uidotdev/usehooks"
-import { Plus } from "lucide-react"
+import { Plus, Trash } from "lucide-react"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
-import { url, type InferInput, object, pipe, string } from "valibot"
+import { type InferInput, object, string } from "valibot"
 
 const formSchema = object({
-  url: pipe(string(), url()),
+  url: string(),
 })
 
 type FormSchema = InferInput<typeof formSchema>
@@ -50,25 +57,129 @@ export default function Page() {
       url: "",
     },
   })
-  const { handleSubmit, register } = form
+  const { handleSubmit, register, setValue } = form
 
   const { c } = useSearchParam()
 
   const { feeds } = useFeeds()
 
   const onSubmit = handleSubmit(async ({ url }) => {
+    const value = (url.startsWith("http") ? url : `https://${url}`)
+      .replace(/https?:\/\//, "")
+      .replace("www.", "")
+
+    if (value.split(".").filter((v) => !!v).length < 2) {
+      return
+    }
+
     m.putFeed({
       id: uuid(),
-      value: url.replace(/https?:\/\//, ""),
+      value,
       channelId: c,
-      position: feeds.length,
+      order:
+        feeds.length === 0
+          ? 0
+          : pipe(
+              feeds,
+              map(([, feed]) => feed.order),
+              max,
+              (max) => max + 2 ** 10,
+            ),
     })
+
+    setValue("url", "")
   })
+
+  useEffect(() => {
+    return monitorForElements({
+      onDrop({ location, source }) {
+        const target = location.current.dropTargets[0]
+
+        if (!target) {
+          return
+        }
+
+        const sourceData = source.data as Feed
+        const targetData = target.data as Feed
+
+        const sourceRef = feeds.find(
+          ([, feed]) => feed.id === sourceData.id,
+        )?.[1]
+
+        const targetRef = feeds.find(
+          ([, feed]) => feed.id === targetData.id,
+        )?.[1]
+
+        if (!targetRef) {
+          console.error("targetRef not found")
+          return
+        }
+
+        if (!sourceRef) {
+          console.error("soureRef not found")
+          return
+        }
+
+        const indexOfTarget = feeds.findIndex(
+          ([, feed]) => feed.id === targetData.id,
+        )
+        const indexOfSource = feeds.findIndex(
+          ([, feed]) => feed.id === sourceData.id,
+        )
+        if (indexOfTarget < 0) {
+          return
+        }
+
+        // top or bottom
+        const closestEdgeOfTarget = extractClosestEdge(targetData)
+
+        const finishIndex = getReorderDestinationIndex({
+          startIndex: indexOfSource,
+          closestEdgeOfTarget,
+          indexOfTarget,
+          axis: "vertical",
+        })
+
+        if (finishIndex === indexOfSource) {
+          return
+        }
+
+        // calculate the new order
+        const prevData =
+          indexOfTarget === 0
+            ? null
+            : closestEdgeOfTarget === "top"
+              ? feeds[indexOfTarget - 1]?.[1]
+              : targetRef
+
+        const nextData =
+          indexOfTarget === feeds.length - 1
+            ? null
+            : closestEdgeOfTarget === "bottom"
+              ? feeds[indexOfTarget + 1]?.[1]
+              : targetRef
+
+        const newOrder =
+          prevData && nextData
+            ? (prevData.order + nextData.order) / 2
+            : !prevData && nextData
+              ? nextData.order + 2 ** 10
+              : prevData && !nextData
+                ? prevData.order - 2 ** 10
+                : 0
+
+        m.putFeed({
+          ...sourceRef,
+          order: newOrder,
+        })
+      },
+    })
+  }, [feeds])
 
   return (
     <main className="flex flex-1 flex-col">
       <StatusBar />
-      <div className="flex-1">
+      <div className="flex flex-1 flex-col">
         <Form {...form}>
           <form onSubmit={onSubmit} className="flex gap-1.5 p-2">
             <Input
@@ -82,22 +193,11 @@ export default function Page() {
             </Button>
           </form>
         </Form>
-        <div className="flex flex-col">
-          {feeds
-            .sort(([, a], [, b]) => b.position - a.position)
-            .map(([k, feed]) => (
-              <Button
-                variant="ghost"
-                key={k}
-                className="flex justify-start gap-1.5 p-2"
-                onClick={() => {
-                  m.delFeed(k)
-                }}
-              >
-                {feed.value}
-              </Button>
-            ))}
-        </div>
+        <ol className="flex flex-1 flex-col overflow-x-hidden">
+          {feeds.map(([k, feed], i) => (
+            <FeedItem key={k} k={k} i={i} />
+          ))}
+        </ol>
         {/* <div className="flex h-12 gap-4">
           {!online && (
             <div>

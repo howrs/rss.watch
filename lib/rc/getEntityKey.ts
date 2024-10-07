@@ -12,6 +12,9 @@ export const getEntityKey = (entity: any) => {
   if ("avatar" in entity) {
     return `user/${entity.id}`
   }
+  if ("url" in entity) {
+    return `webhook/${entity.id}`
+  }
 
   throw new Error("Unknown entity")
 }

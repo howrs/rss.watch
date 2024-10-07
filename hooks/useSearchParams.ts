@@ -10,7 +10,7 @@ export const useSearchParam = () => {
 }
 
 export const getSearchParams = () => {
-  const search = location.search.replace("?", "")
+  const search = location.search.replace("?", "").replace("=", "")
 
   const g = search.split("/")[0]
   const c = search.split("/")[1]

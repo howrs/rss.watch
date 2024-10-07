@@ -32,7 +32,7 @@ export function SideNav() {
             <Button
               key={k}
               variant="ghost"
-              className="justify-start gap-1"
+              className="cursor-default justify-start gap-1"
               onClick={() => {
                 push(`/d?${g}/${v.id}`)
                 setOpen(false)
@@ -57,7 +57,7 @@ export function SideNav() {
             toArray,
           ).length > 0 ? (
             <Collapsible key={k} defaultOpen className="my-3">
-              <CollapsibleTrigger className="group flex gap-1 font-semibold uppercase">
+              <CollapsibleTrigger className="group flex cursor-default gap-1 font-semibold uppercase">
                 <ChevronDown className="h-4 w-4 transition group-data-[state=closed]:rotate-[-90deg]" />
                 {v.name}
               </CollapsibleTrigger>
@@ -71,7 +71,7 @@ export function SideNav() {
                     <Button
                       key={k}
                       variant="ghost"
-                      className="justify-start gap-1 font-medium"
+                      className="cursor-default justify-start gap-1 font-medium"
                       onClick={() => {
                         push(`/d?${g}/${v.id}`)
                         setOpen(false)

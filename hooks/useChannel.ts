@@ -13,7 +13,7 @@ export const useChannel = () => {
     [c],
   )
 
-  if (!c) {
+  if (!c && channels.length > 0) {
     const channel = channels
       .map(([, v]) => v)
       .filter((v) => v.type === 0 && v.parentId == null)[0]
