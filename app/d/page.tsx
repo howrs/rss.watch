@@ -184,7 +184,7 @@ export default function Page() {
           <form onSubmit={onSubmit} className="flex gap-1.5 p-2">
             <Input
               {...register("url")}
-              placeholder="https://example.com"
+              placeholder="example.com"
               className="flex-1"
               autoComplete="off"
             />

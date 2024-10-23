@@ -17,6 +17,7 @@ export const useChannel = () => {
     const channel = channels
       .map(([, v]) => v)
       .filter((v) => v.type === 0 && v.parentId == null)[0]
+
     redirect(`/d?${g}/${channel.id}`)
   }
 
