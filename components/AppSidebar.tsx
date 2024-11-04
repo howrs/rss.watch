@@ -26,17 +26,13 @@ import { Image } from "components/Image"
 import { COOKIE } from "constants/cookie"
 import { LogOut } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 export function AppSidebar() {
-  const { push } = useRouter()
   const {
     me: { avatar, name, id },
   } = useMe()
 
   useSyncChannels()
-
-  const { setOpen } = useSidebar()
 
   return (
     <Sidebar

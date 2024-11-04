@@ -1,7 +1,10 @@
+import { JWTSchema } from "@/app/a/[[...route]]/oauth/discord"
 import { getEntityKey } from "@/lib/rc/getEntityKey"
 import { fromEntries, map, pipe, toArray } from "@fxts/core"
 import { COOKIE } from "constants/cookie"
+import { JWT_SECRET } from "constants/secrets"
 import type { Context } from "hono"
+import { jwtDecrypt } from "jose"
 import { cookies } from "next/headers"
 import { deflate, inflate } from "pako"
 import { db } from "prisma/db"
@@ -9,7 +12,6 @@ import type { PatchOperation, PullResponseOKV1 } from "replicache"
 import { nullable, number, object, parse, string } from "valibot"
 
 const lSchema = object({
-  g: string(),
   clientGroupID: string(),
   cookie: nullable(number()),
 })
@@ -23,15 +25,22 @@ export const l = async (c: Context) => {
     JSON.parse(inflate(await req.arrayBuffer(), { to: "string" })),
   )
 
-  const { cookie, clientGroupID, g: guildId } = body
+  const { cookie, clientGroupID } = body
 
   const prevVersion = cookie ?? 0
 
-  const userId = (await cookies()).get(COOKIE.USER_ID)?.value
+  const ck = await cookies()
 
-  if (!userId) {
-    return redirect("/")
+  const userId = ck.get(COOKIE.USER_ID)?.value
+  const token = ck.get(COOKIE.TOKEN)?.value
+
+  if (!token || !userId) {
+    return c.redirect("/")
   }
+
+  const { payload } = await jwtDecrypt(token, JWT_SECRET)
+
+  const { g: guildId } = parse(JWTSchema, payload)
 
   const guild = await prisma.guild.findUnique({
     where: {

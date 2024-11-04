@@ -13,6 +13,7 @@ import { db } from "prisma/db"
 import { object, string } from "valibot"
 
 export const JWTSchema = object({
+  g: string(),
   guild_id: string(),
   access_token: string(),
 })
@@ -105,6 +106,7 @@ export const app = route.get(
       // userId: user.id,
       access_token,
       guild_id: id,
+      g: guild.id,
     })
       .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
       .setExpirationTime(`${expires_in}s`)

@@ -36,7 +36,8 @@
         "noDangerouslySetInnerHtml": "warn"
       },
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noAsyncPromiseExecutor": "off"
       },
       "complexity": {
         "noBannedTypes": "warn",

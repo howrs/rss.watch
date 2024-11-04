@@ -1,25 +1,19 @@
 import { mutator } from "@/app/a/[[...route]]/mutator"
+import { JWTSchema } from "@/app/a/[[...route]]/oauth/discord"
 import { poke } from "@/lib/poke"
 import { mutators } from "@/lib/rc/mutators"
-import {
-  flatMap,
-  identity,
-  indexBy,
-  keys,
-  pipe,
-  toArray,
-  toAsync,
-} from "@fxts/core"
+import { identity, indexBy, keys, pipe } from "@fxts/core"
 import type { Prisma } from "@prisma/client"
 import { COOKIE } from "constants/cookie"
+import { JWT_SECRET } from "constants/secrets"
 import type { Context } from "hono"
+import { jwtDecrypt } from "jose"
 import { cookies } from "next/headers"
 import { inflate } from "pako"
 import { db } from "prisma/db"
 import { any, array, number, object, parse, picklist, string } from "valibot"
 
 const pSchema = object({
-  g: string(),
   clientGroupID: string(),
   mutations: array(
     object({
@@ -41,13 +35,20 @@ export const p = async (c: Context) => {
     JSON.parse(inflate(await req.arrayBuffer(), { to: "string" })),
   )
 
-  const { clientGroupID, mutations, g: guildId } = body
+  const { clientGroupID, mutations } = body
 
-  const userId = (await cookies()).get(COOKIE.USER_ID)?.value
+  const ck = await cookies()
 
-  if (!userId) {
+  const userId = ck.get(COOKIE.USER_ID)?.value
+  const token = ck.get(COOKIE.TOKEN)?.value
+
+  if (!token || !userId) {
     return c.redirect("/")
   }
+
+  const { payload } = await jwtDecrypt(token, JWT_SECRET)
+
+  const { g: guildId } = parse(JWTSchema, payload)
 
   const defaultClientGroup = {
     id: clientGroupID,
