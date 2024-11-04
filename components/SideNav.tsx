@@ -1,9 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar"
 import { useChannels } from "@/hooks/useChannels"
-import { useSearchParam } from "@/hooks/useSearchParams"
-import { useSidePanel } from "@/hooks/useSidePanel"
+import { separator, useSearchParam } from "@/hooks/useSearchParams"
 import { filter, map, pipe, sort, toArray } from "@fxts/core"
 import {
   Collapsible,
@@ -11,17 +16,14 @@ import {
   CollapsibleTrigger,
 } from "@radix-ui/react-collapsible"
 import { ChevronDown, Hash } from "lucide-react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export function SideNav() {
   const { channels } = useChannels()
-  const { g } = useSearchParam()
-  const { push } = useRouter()
-
-  const [, setOpen] = useSidePanel()
+  const { g, c } = useSearchParam()
 
   return (
-    <div className="flex flex-col font-sans text-xs">
+    <div className="flex flex-col gap-2 font-sans text-xs">
       <div className="flex flex-col">
         {pipe(
           channels,
@@ -29,18 +31,17 @@ export function SideNav() {
           filter(([, c]) => c.parentId == null),
           sort(([, a], [_, b]) => a.position - b.position),
           map(([k, v]) => (
-            <Button
+            <SidebarMenuButton
+              asChild
+              isActive={v.id === c}
               key={k}
-              variant="ghost"
-              className="cursor-default justify-start gap-1"
-              onClick={() => {
-                push(`/d?${g}/${v.id}`)
-                setOpen(false)
-              }}
+              className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
             >
-              <Hash className="h-4 w-4" />
-              {v.name}
-            </Button>
+              <Link href={`/d?${g}${separator}${v.id}`}>
+                <Hash className="h-4 w-4" />
+                {v.name}
+              </Link>
+            </SidebarMenuButton>
           )),
           toArray,
         )}
@@ -56,34 +57,39 @@ export function SideNav() {
             filter(([, c]) => v.discordId === c.parentId),
             toArray,
           ).length > 0 ? (
-            <Collapsible key={k} defaultOpen className="my-3">
-              <CollapsibleTrigger className="group flex cursor-default gap-1 font-semibold uppercase">
-                <ChevronDown className="h-4 w-4 transition group-data-[state=closed]:rotate-[-90deg]" />
-                {v.name}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="flex flex-col py-1">
-                {pipe(
-                  channels,
-                  filter(([, v]) => v.type === 0),
-                  filter(([, c]) => v.discordId === c.parentId),
-                  sort(([, a], [_, b]) => a.position - b.position),
-                  map(([k, v]) => (
-                    <Button
-                      key={k}
-                      variant="ghost"
-                      className="cursor-default justify-start gap-1 font-medium"
-                      onClick={() => {
-                        push(`/d?${g}/${v.id}`)
-                        setOpen(false)
-                      }}
-                    >
-                      <Hash className="h-4 w-4" />
-                      {v.name}
-                    </Button>
-                  )),
-                  toArray,
-                )}
-              </CollapsibleContent>
+            <Collapsible key={k} defaultOpen className="">
+              <SidebarGroup className="p-0">
+                <SidebarGroupLabel asChild>
+                  <CollapsibleTrigger className="group flex cursor-default gap-1 font-semibold uppercase">
+                    <ChevronDown className="h-4 w-4 transition group-data-[state=closed]:rotate-[-90deg]" />
+                    {v.name}
+                  </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    {pipe(
+                      channels,
+                      filter(([, v]) => v.type === 0),
+                      filter(([, c]) => v.discordId === c.parentId),
+                      sort(([, a], [_, b]) => a.position - b.position),
+                      map(([k, v]) => (
+                        <SidebarMenuButton
+                          asChild
+                          isActive={v.id === c}
+                          key={k}
+                          className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
+                        >
+                          <Link href={`/d?${g}${separator}${v.id}`}>
+                            <Hash className="h-4 w-4" />
+                            {v.name}
+                          </Link>
+                        </SidebarMenuButton>
+                      )),
+                      toArray,
+                    )}
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
             </Collapsible>
           ) : null,
         ),

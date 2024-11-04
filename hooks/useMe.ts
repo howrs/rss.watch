@@ -1,12 +1,12 @@
 import { useData } from "@/hooks/useData"
+import { cookies } from "@/utils/cookie"
 import type { User } from "@prisma/client"
 import { COOKIE } from "constants/cookie"
-import Cookies from "js-cookie"
-import type { ReadTransaction } from "replicache"
 
 export const useMe = () => {
-  const { data } = useData(["me"], (tx: ReadTransaction) => {
-    const userId = Cookies.get(COOKIE.USER_ID)
+  const userId = cookies.get(COOKIE.USER_ID)
+
+  const { data } = useData(["me"], (tx) => {
     return tx.get<Omit<User, "createdAt" | "updatedAt">>(`user/${userId}`)
   })
 

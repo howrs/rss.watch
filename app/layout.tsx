@@ -4,7 +4,7 @@ import { ggSans } from "@/app/fonts/ggSans"
 import { cn } from "@/lib/utils"
 import { Providers } from "components/Providers"
 import { HOST } from "constants/urls"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const title = "Template"
-  const description = "A Next.js template"
+  const description = ""
 
   return {
     title,
@@ -28,16 +28,23 @@ export const generateMetadata = async (): Promise<Metadata> => {
   }
 }
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+}
+
 export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en" className={cn("dark", ggSans.variable)}>
+    <html lang="en" suppressHydrationWarning className={cn(ggSans.variable)}>
       <head>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
       </head>
-      <body className="flex h-dvh flex-col antialiased">
+      <body className="min-h-screen font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

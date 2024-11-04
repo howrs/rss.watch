@@ -1,6 +1,6 @@
 "use client"
 
-import { FeedItem } from "@/app/d/FeedItem"
+import { FeedItem } from "@/app/(auth)/d/FeedItem"
 import { client } from "@/components/QueryProvider"
 import { StatusBar } from "@/components/StatusBar"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useFeeds } from "@/hooks/useFeeds"
 import { useRCache } from "@/hooks/useRCache"
 import { useSearchParam } from "@/hooks/useSearchParams"
-import { useSyncing } from "@/hooks/useSyncing"
+import { rep } from "@/lib/rc/RC"
 import { uuid } from "@/utils/ids"
 import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge"
 import { getReorderDestinationIndex } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index"
@@ -19,9 +19,10 @@ import { pipe } from "@fxts/core"
 import { valibotResolver } from "@hookform/resolvers/valibot"
 import type { Feed } from "@prisma/client"
 import { useNetworkState } from "@uidotdev/usehooks"
-import { Plus, Trash } from "lucide-react"
+import { Plus } from "lucide-react"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { type InferInput, object, string } from "valibot"
 
 const formSchema = object({
@@ -31,21 +32,22 @@ const formSchema = object({
 type FormSchema = InferInput<typeof formSchema>
 
 export default function Page() {
-  const { r, m } = useRCache()
+  const { m } = useRCache()
 
   const { online } = useNetworkState()
-  const { syncing } = useSyncing()
+  // const { syncing } = useSyncing()
 
   useEffect(() => {
     !(async () => {
       const isOffline = client.getQueryData<boolean>(["isOffline"])
 
       if (isOffline && online) {
-        const hasMutations = (await r.experimentalPendingMutations()).length > 0
+        const hasMutations =
+          (await rep.experimentalPendingMutations()).length > 0
 
         if (hasMutations) {
           client.setQueryData(["isOffline"], false)
-          r.push({ now: true })
+          rep.push({ now: true })
         }
       }
     })()
@@ -67,6 +69,13 @@ export default function Page() {
     const value = (url.startsWith("http") ? url : `https://${url}`)
       .replace(/https?:\/\//, "")
       .replace("www.", "")
+      .replace(/\/$/, "")
+
+    if (feeds.some(([, feed]) => feed.value === value)) {
+      toast("Feed already exists")
+      setValue("url", "")
+      return
+    }
 
     if (value.split(".").filter((v) => !!v).length < 2) {
       return
@@ -177,28 +186,34 @@ export default function Page() {
   }, [feeds])
 
   return (
-    <main className="flex flex-1 flex-col">
-      <StatusBar />
+    <>
       <div className="flex flex-1 flex-col">
-        <Form {...form}>
-          <form onSubmit={onSubmit} className="flex gap-1.5 p-2">
-            <Input
-              {...register("url")}
-              placeholder="example.com"
-              className="flex-1"
-              autoComplete="off"
-            />
-            <Button className="" size="icon" variant="ghost">
-              <Plus className="h-5 w-5" />
-            </Button>
-          </form>
-        </Form>
-        <ol className="flex flex-1 flex-col overflow-x-hidden">
-          {feeds.map(([k, feed], i) => (
-            <FeedItem key={k} k={k} i={i} />
-          ))}
-        </ol>
-        {/* <div className="flex h-12 gap-4">
+        <StatusBar />
+        <div className="flex w-full max-w-screen-md flex-1 flex-col self-center">
+          <Form {...form}>
+            <form
+              onSubmit={onSubmit}
+              className="sticky top-20 z-50 flex gap-1.5 bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            >
+              <Input
+                {...register("url")}
+                placeholder="example.com"
+                className="flex-1"
+                autoComplete="off"
+              />
+              <Button className="" size="icon" variant="ghost">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </form>
+          </Form>
+          <section className="px-1">
+            <ol className="flex flex-1 flex-col">
+              {feeds.map(([k, feed], i) => (
+                <FeedItem key={k} k={k} i={i} feed={feed} />
+              ))}
+            </ol>
+          </section>
+          {/* <div className="flex h-12 gap-4">
           {!online && (
             <div>
               <CloudOff />
@@ -206,7 +221,8 @@ export default function Page() {
           )}
           {online && syncing && <div>Syncing...</div>}
         </div> */}
+        </div>
       </div>
-    </main>
+    </>
   )
 }

@@ -7,7 +7,7 @@ import { cookies } from "next/headers"
 import { parse } from "valibot"
 
 export const app = route.get("/channels", async (c) => {
-  const token = cookies().get(COOKIE.TOKEN)?.value!
+  const token = (await cookies()).get(COOKIE.TOKEN)?.value!
 
   const { payload } = await jwtDecrypt(token, JWT_SECRET)
 

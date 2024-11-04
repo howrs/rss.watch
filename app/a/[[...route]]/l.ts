@@ -27,7 +27,7 @@ export const l = async (c: Context) => {
 
   const prevVersion = cookie ?? 0
 
-  const userId = cookies().get(COOKIE.USER_ID)?.value
+  const userId = (await cookies()).get(COOKIE.USER_ID)?.value
 
   if (!userId) {
     return redirect("/")
@@ -171,7 +171,7 @@ export const l = async (c: Context) => {
           ? [
               {
                 op: "put",
-                key: "guild",
+                key: `guild`,
                 value: {
                   id: guild.id,
                   discordId: guild.discordId,

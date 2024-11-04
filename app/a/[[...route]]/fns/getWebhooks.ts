@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { Webhook } from "@/app/a/[[...route]]/fns/createWebhook"
 import { env } from "@/lib/env"
 import { isArray } from "@fxts/core"
 
@@ -17,33 +18,4 @@ export const getWebhooks = async (guild_id: string): Promise<Webhook[]> => {
   }
 
   return data
-}
-
-export interface Webhook {
-  application_id: string
-  avatar: null
-  channel_id: string
-  guild_id: string
-  id: string
-  name: string
-  type: number
-  user: User
-  token: string
-  url: string
-}
-
-interface User {
-  id: string
-  username: string
-  avatar: null
-  discriminator: string
-  public_flags: number
-  flags: number
-  bot: boolean
-  banner: null
-  accent_color: null
-  global_name: null
-  avatar_decoration_data: null
-  banner_color: null
-  clan: null
 }

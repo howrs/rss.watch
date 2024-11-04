@@ -1,4 +1,4 @@
-import { useRCache } from "@/hooks/useRCache"
+import { rep } from "@/lib/rc/RC"
 import {
   type QueryKey,
   queryOptions,
@@ -11,17 +11,15 @@ export const useData = <R>(
   queryKey: QueryKey,
   tx: (tx: ReadTransaction) => Promise<R>,
 ) => {
-  const { r } = useRCache()
-
   const query = useSuspenseQuery(
     queryOptions<R>({
       queryKey,
-      queryFn: () => r.query(tx),
+      queryFn: () => rep.query(tx),
     }),
   )
 
   useEffect(() => {
-    const unsub = r.subscribe(tx, {
+    const unsub = rep.subscribe(tx, {
       onData() {
         query.refetch()
       },

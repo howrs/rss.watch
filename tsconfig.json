@@ -28,7 +28,8 @@
       "@/app/*": ["app/*"],
       "@/components/*": ["components/*"],
       "@/lib/*": ["lib/*"],
-      "@/hooks/*": ["hooks/*"]
+      "@/hooks/*": ["hooks/*"],
+      "content-collections": ["./.content-collections/generated"]
     },
     "types": ["@cloudflare/workers-types"]
   },

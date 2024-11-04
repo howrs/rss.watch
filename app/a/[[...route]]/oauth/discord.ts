@@ -110,14 +110,16 @@ export const app = route.get(
       .setExpirationTime(`${expires_in}s`)
       .encrypt(JWT_SECRET)
 
-    cookies().set(COOKIE.TOKEN, token, {
+    const cookie = await cookies()
+
+    cookie.set(COOKIE.TOKEN, token, {
       maxAge: expires_in,
       sameSite: "strict",
       secure: isProd(),
       httpOnly: true,
     })
 
-    cookies().set(COOKIE.USER_ID, user.id, {
+    cookie.set(COOKIE.USER_ID, user.id, {
       maxAge: expires_in,
       sameSite: "strict",
       secure: isProd(),

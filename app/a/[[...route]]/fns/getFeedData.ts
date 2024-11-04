@@ -11,9 +11,9 @@ type FeedItem = {
   link: string
 }
 
-export const getFeedData = async (url: string): Promise<FeedInfo> => {
-  if (isStandalone(url)) {
-    // Check cached site (from github)
-    // Fetch the site
-  }
-}
+// export const getFeedData = async (url: string): Promise<FeedInfo> => {
+//   if (isStandalone(url)) {
+//     // Check cached site (from github)
+//     // Fetch the site
+//   }
+// }

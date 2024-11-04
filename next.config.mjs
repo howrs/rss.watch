@@ -1,4 +1,5 @@
 import { setupDevPlatform } from "@cloudflare/next-on-pages/next-dev"
+import { withContentCollections } from "@content-collections/next"
 
 if (process.env.NODE_ENV === "development") {
   await setupDevPlatform({})
@@ -15,10 +16,10 @@ const config = {
       },
     ]
   },
-  // reactStrictMode: true,
+  // reactStrictMode: false,
   compiler: {
     // removeConsole: true,
   },
 }
 
-export default config
+export default withContentCollections(config)

@@ -1,5 +1,5 @@
 import { useChannels } from "@/hooks/useChannels"
-import { useSearchParam } from "@/hooks/useSearchParams"
+import { separator, useSearchParam } from "@/hooks/useSearchParams"
 import { redirect } from "next/navigation"
 import { useMemo } from "react"
 
@@ -10,7 +10,7 @@ export const useChannel = () => {
 
   const channel = useMemo(
     () => channels.map(([, v]) => v).find((v) => v.id === c),
-    [c],
+    [c, channels],
   )
 
   if (!c && channels.length > 0) {
@@ -18,7 +18,7 @@ export const useChannel = () => {
       .map(([, v]) => v)
       .filter((v) => v.type === 0 && v.parentId == null)[0]
 
-    redirect(`/d?${g}/${channel.id}`)
+    redirect(`/d?${g}${separator}${channel.id}`)
   }
 
   return { channel }

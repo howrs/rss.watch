@@ -6,6 +6,7 @@
       "recommended": true,
       "style": {
         "noUnusedTemplateLiteral": "off",
+        "noParameterAssign": "off",
         "useImportType": {
           "level": "error",
           "fix": "unsafe"
@@ -39,7 +40,8 @@
       },
       "complexity": {
         "noBannedTypes": "warn",
-        "noForEach": "off"
+        "noForEach": "off",
+        "useLiteralKeys": "warn"
       }
     }
   },

@@ -6,8 +6,8 @@ const CLIENT_SECRET = `ETIw0Ub_yNcbiuvD23CLv6IMlUpjEben`
 const CLIENT_ID = `1280201575712948325`
 
 export const getOAuth2Token = async (code: string) => {
-  const host = headers().get("Host")
-  const origin = headers().get("Origin")
+  const host = (await headers()).get("Host")
+  const origin = (await headers()).get("Origin")
   const BASE_URL =
     !!host && host.includes("localhost")
       ? `http://${host}`

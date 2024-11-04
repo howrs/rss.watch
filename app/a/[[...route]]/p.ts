@@ -43,7 +43,7 @@ export const p = async (c: Context) => {
 
   const { clientGroupID, mutations, g: guildId } = body
 
-  const userId = cookies().get(COOKIE.USER_ID)?.value
+  const userId = (await cookies()).get(COOKIE.USER_ID)?.value
 
   if (!userId) {
     return c.redirect("/")
