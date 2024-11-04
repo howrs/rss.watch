@@ -13,7 +13,7 @@ export const ggSans = localFont({
       style: "normal",
     },
     {
-      path: "./GG-Sans-SemiBold.woff2",
+      path: "./GG-Sans-Semibold.woff2",
       weight: "600",
       style: "italic",
     },
