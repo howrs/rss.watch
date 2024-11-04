@@ -126,6 +126,6 @@ export const app = route.get(
       httpOnly: false,
     })
 
-    return c.redirect(`/d?${guild.id}`)
+    return c.redirect(`/d#${guild.id}`)
   },
 )

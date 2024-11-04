@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -37,7 +36,7 @@ export function SideNav() {
               key={k}
               className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
             >
-              <Link href={`/d?${g}${separator}${v.id}`}>
+              <Link href={`/d#${g}${separator}${v.id}`}>
                 <Hash className="h-4 w-4" />
                 {v.name}
               </Link>
@@ -79,7 +78,7 @@ export function SideNav() {
                           key={k}
                           className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
                         >
-                          <Link href={`/d?${g}${separator}${v.id}`}>
+                          <Link href={`/d#${g}${separator}${v.id}`}>
                             <Hash className="h-4 w-4" />
                             {v.name}
                           </Link>

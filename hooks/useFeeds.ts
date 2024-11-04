@@ -20,9 +20,9 @@ export const useFeeds = () => {
     const { g } = getSearchParams()
 
     if (g) {
-      redirect(`/d?${g}`)
+      redirect(`/d#${g}`)
     } else if (guild) {
-      redirect(`/d?${guild.id}`)
+      redirect(`/d#${guild.id}`)
     } else {
       redirect(`/`)
     }

@@ -1,12 +1,10 @@
-import { useSearchParams } from "next/navigation"
+import { useHash } from "@/hooks/useHash"
 
-export const separator = "="
+export const separator = "/"
 
 export const useSearchParam = () => {
-  const s = decodeURIComponent(
-    useSearchParams().toString(),
-    // .replace("=", "")
-  )
+  const [hash] = useHash()
+  const s = hash.replace("#", "")
 
   const g = s.split(separator)[0]
   const c = s.split(separator)[1]
@@ -15,11 +13,10 @@ export const useSearchParam = () => {
 }
 
 export const getSearchParams = () => {
-  const search = location.search.replace("?", "")
-  // .replace("=", "")
+  const hash = location.hash.replace("#", "")
 
-  const g = search.split(separator)[0]
-  const c = search.split(separator)[1]
+  const g = hash.split(separator)[0]
+  const c = hash.split(separator)[1]
 
   return {
     g,

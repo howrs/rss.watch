@@ -25,6 +25,7 @@ import { cookies } from "@/utils/cookie"
 import { Image } from "components/Image"
 import { COOKIE } from "constants/cookie"
 import { LogOut } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export function AppSidebar() {
@@ -68,12 +69,13 @@ export function AppSidebar() {
               onClick={() => {
                 cookies.remove(COOKIE.TOKEN)
                 cookies.remove(COOKIE.USER_ID)
-                setOpen(false)
-                push("/")
               }}
+              asChild
             >
-              <LogOut className="h-3.5 w-3.5" />
-              Log out
+              <Link href="/">
+                <LogOut className="h-3.5 w-3.5" />
+                Log out
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
