@@ -4,14 +4,14 @@ import { separator, useSearchParam } from "@/hooks/useSearchParams"
 import { redirect } from "next/navigation"
 import { useMemo } from "react"
 
-export const useChannel = () => {
+export const useChannel = (id?: string) => {
   const { guild } = useGuild()
   const { channels } = useChannels()
 
-  const { g, c } = useSearchParam()
+  const { c } = useSearchParam()
 
   const channel = useMemo(
-    () => channels.map(([, v]) => v).find((v) => v.id === c),
+    () => channels.map(([, v]) => v).find((v) => v.id === (id ?? c)),
     [c, channels],
   )
 

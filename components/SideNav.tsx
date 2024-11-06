@@ -1,25 +1,22 @@
 "use client"
 
+import { SideChannelButton } from "@/components/SideChannelButton"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { useChannels } from "@/hooks/useChannels"
-import { separator, useSearchParam } from "@/hooks/useSearchParams"
 import { filter, map, pipe, sort, toArray } from "@fxts/core"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@radix-ui/react-collapsible"
-import { ChevronDown, Hash } from "lucide-react"
-import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 
 export function SideNav() {
   const { channels } = useChannels()
-  const { g, c } = useSearchParam()
 
   return (
     <div className="flex flex-col gap-2 font-sans text-xs">
@@ -29,19 +26,7 @@ export function SideNav() {
           filter(([, v]) => v.type === 0),
           filter(([, c]) => c.parentId == null),
           sort(([, a], [_, b]) => a.position - b.position),
-          map(([k, v]) => (
-            <SidebarMenuButton
-              asChild
-              isActive={v.id === c}
-              key={k}
-              className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
-            >
-              <Link href={`/d#${g}${separator}${v.id}`}>
-                <Hash className="h-4 w-4" />
-                {v.name}
-              </Link>
-            </SidebarMenuButton>
-          )),
+          map(([k, v]) => <SideChannelButton key={k} k={k} v={v} />),
           toArray,
         )}
       </div>
@@ -72,17 +57,7 @@ export function SideNav() {
                       filter(([, c]) => v.discordId === c.parentId),
                       sort(([, a], [_, b]) => a.position - b.position),
                       map(([k, v]) => (
-                        <SidebarMenuButton
-                          asChild
-                          isActive={v.id === c}
-                          key={k}
-                          className="cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
-                        >
-                          <Link href={`/d#${g}${separator}${v.id}`}>
-                            <Hash className="h-4 w-4" />
-                            {v.name}
-                          </Link>
-                        </SidebarMenuButton>
+                        <SideChannelButton key={k} k={k} v={v} />
                       )),
                       toArray,
                     )}

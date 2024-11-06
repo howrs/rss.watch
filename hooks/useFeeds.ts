@@ -5,17 +5,10 @@ import { useSearchParam } from "@/hooks/useSearchParams"
 import type { Feed } from "@prisma/client"
 import { redirect } from "next/navigation"
 
-export const useFeeds = () => {
+export const useFeeds = (channelId?: string) => {
   const { channel } = useChannel()
   const { guild } = useGuild()
   const { g } = useSearchParam()
-
-  const { data: feeds } = useData(["feeds"], (tx) => {
-    return tx
-      .scan<Omit<Feed, "createdAt" | "updatedAt">>({ prefix: "feed/" })
-      .entries()
-      .toArray()
-  })
 
   if (!channel) {
     if (g) {
@@ -27,9 +20,19 @@ export const useFeeds = () => {
     }
   }
 
-  return {
-    feeds: feeds
-      .filter(([, v]) => v.channelId === channel.id)
-      .sort(([, a], [, b]) => b.order - a.order),
-  }
+  const { data: feeds } = useData(
+    [channelId ?? channel.id, "feeds"],
+    async (tx) => {
+      return (
+        await tx
+          .scan<Omit<Feed, "createdAt" | "updatedAt">>({ prefix: "feed/" })
+          .entries()
+          .toArray()
+      )
+        .filter(([, v]) => v.channelId === (channelId ?? channel.id))
+        .sort(([, a], [, b]) => b.order - a.order)
+    },
+  )
+
+  return { feeds }
 }

@@ -130,7 +130,7 @@ export function FeedItem({ k, i, feed }: Props) {
       <li
         ref={ref}
         className={cn(
-          "relative flex w-full items-center justify-start gap-2 rounded p-2 px-2 text-sm",
+          "relative flex w-full items-center justify-start gap-2 rounded px-2 py-0.5 text-sm",
           draggableState.type === "dragging" && "opacity-40",
         )}
       >
