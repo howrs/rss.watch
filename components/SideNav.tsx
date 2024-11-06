@@ -44,7 +44,7 @@ export function SideNav() {
             <Collapsible key={k} defaultOpen className="">
               <SidebarGroup className="p-0">
                 <SidebarGroupLabel asChild>
-                  <CollapsibleTrigger className="group flex cursor-default gap-1 font-semibold uppercase">
+                  <CollapsibleTrigger className="group flex cursor-default gap-1 font-mono font-semibold uppercase">
                     <ChevronDown className="h-4 w-4 transition group-data-[state=closed]:rotate-[-90deg]" />
                     {v.name}
                   </CollapsibleTrigger>

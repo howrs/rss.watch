@@ -4,8 +4,10 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { ModeToggle } from "@/components/ModeToggle"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { rep } from "@/lib/rc/RC"
+import type { Channel } from "@prisma/client"
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query"
 import type { PropsWithChildren } from "react"
+import type { ReadTransaction } from "replicache"
 
 type Props = PropsWithChildren
 
@@ -15,18 +17,27 @@ export default function Layout({ children }: Props) {
       queryKey: ["loaded"],
       queryFn: () =>
         new Promise<boolean>(async (resolve) => {
-          const data = await rep.query((tx) => tx.has("guild"))
+          const query = async (tx: ReadTransaction) => {
+            const hasGuild = await tx.has("guild")
+            const channels = await tx
+              .scan<Omit<Channel, "createdAt" | "updatedAt">>({
+                prefix: "channel/",
+              })
+              .toArray()
+            const hasChannels = channels.filter((v) => v.type === 0).length > 0
+
+            return hasGuild && hasChannels
+          }
+          const data = await rep.query(query)
 
           if (data) {
-            console.log("test")
             resolve(true)
             return
           }
 
-          const unsub = rep.subscribe((tx) => tx.has("guild"), {
+          const unsub = rep.subscribe(query, {
             onData: (data) => {
               if (data) {
-                console.log("test2")
                 resolve(data)
                 unsub()
               }

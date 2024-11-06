@@ -1,4 +1,15 @@
 -- CreateTable
+CREATE TABLE "Guild" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "discordId" TEXT NOT NULL,
+    "icon" TEXT,
+    "name" TEXT NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -10,14 +21,15 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Guild" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "discordId" TEXT NOT NULL,
-    "icon" TEXT,
-    "name" TEXT NOT NULL,
-    "version" INTEGER NOT NULL DEFAULT 0,
+CREATE TABLE "GuildToUser" (
+    "guildId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" DATETIME NOT NULL,
+
+    PRIMARY KEY ("guildId", "userId"),
+    CONSTRAINT "GuildToUser_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "GuildToUser_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -93,21 +105,18 @@ CREATE TABLE "Webhook" (
 );
 
 -- CreateTable
-CREATE TABLE "_GuildToUser" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-    CONSTRAINT "_GuildToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_GuildToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE "Sent" (
+    "hash" BLOB NOT NULL PRIMARY KEY
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Guild_discordId_key" ON "Guild"("discordId");
 
 -- CreateIndex
-CREATE INDEX "ClientGroup_id_guildId_idx" ON "ClientGroup"("id", "guildId");
+CREATE INDEX "User_id_version_idx" ON "User"("id", "version");
 
 -- CreateIndex
-CREATE INDEX "Client_id_clientGroupId_idx" ON "Client"("id", "clientGroupId");
+CREATE INDEX "ClientGroup_id_guildId_idx" ON "ClientGroup"("id", "guildId");
 
 -- CreateIndex
 CREATE INDEX "Client_version_clientGroupId_idx" ON "Client"("version", "clientGroupId");
@@ -135,9 +144,3 @@ CREATE INDEX "Webhook_version_guildId_idx" ON "Webhook"("version", "guildId");
 
 -- CreateIndex
 CREATE INDEX "Webhook_updatedAt_idx" ON "Webhook"("updatedAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_GuildToUser_AB_unique" ON "_GuildToUser"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_GuildToUser_B_index" ON "_GuildToUser"("B");

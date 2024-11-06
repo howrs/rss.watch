@@ -12,6 +12,7 @@ export const delFeed = async ({ guild, version, args }: Param) => {
     prisma.feed.updateMany({
       where: {
         id: args.split("/")[1],
+        guildId: guild.id,
       },
       data: {
         deleted: true,

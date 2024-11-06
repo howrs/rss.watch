@@ -18,6 +18,7 @@ export const putFeed = async ({
     prisma.feed.upsert({
       where: {
         id,
+        guildId,
       },
       create: {
         id,

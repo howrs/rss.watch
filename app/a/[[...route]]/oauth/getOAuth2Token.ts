@@ -6,14 +6,13 @@ const CLIENT_SECRET = `ETIw0Ub_yNcbiuvD23CLv6IMlUpjEben`
 const CLIENT_ID = `1280201575712948325`
 
 export const getOAuth2Token = async (code: string) => {
-  const host = (await headers()).get("Host")
-  const origin = (await headers()).get("Origin")
+  const h = await headers()
+  const host = h.get("Host")
+  const origin = h.get("Origin")
   const BASE_URL =
     !!host && host.includes("localhost")
       ? `http://${host}`
       : origin || getBaseURL()
-
-  console.log({ BASE_URL })
 
   if (!BASE_URL) {
     throw new Error("BASE_URL not found")

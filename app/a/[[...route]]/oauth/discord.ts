@@ -48,58 +48,76 @@ export const app = route.get(
     const me = await getMe(res)
     const { avatar, username } = me
 
-    const [guild, user] = await Promise.all([
-      prisma.guild
-        .findUnique({
-          where: { discordId: id },
-        })
-        .then((g) =>
-          g
-            ? (async () => {
-                const isUpdated = !isEqual(
-                  { name, icon },
-                  { name: g.name, icon: g.icon },
-                )
+    const guild = await prisma.guild
+      .findUnique({
+        where: { discordId: id },
+      })
+      .then((g) =>
+        g
+          ? (async () => {
+              const isUpdated = !isEqual(
+                { name, icon },
+                { name: g.name, icon: g.icon },
+              )
 
-                if (isUpdated) {
-                  await prisma.guild.update({
-                    where: { id: g.id },
-                    data: { name, icon },
-                  })
-                }
+              if (isUpdated) {
+                await prisma.guild.update({
+                  where: { id: g.id },
+                  data: { name, icon },
+                })
+              }
 
-                return g
-              })()
-            : prisma.guild.create({
-                data: {
-                  id: nanoid(),
-                  discordId: id,
-                  icon,
-                  version: 1,
-                  name,
-                },
-              }),
-        ),
+              return g
+            })()
+          : prisma.guild.create({
+              data: {
+                id: nanoid(),
+                discordId: id,
+                icon,
+                version: 1,
+                name,
+              },
+            }),
+      )
 
-      prisma.user
-        .findUnique({
-          where: { id: me.id },
-        })
-        .then(
-          (u) =>
-            u ||
+    const [user, guildToUser] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: me.id },
+      }),
+      prisma.guildToUser.findUnique({
+        where: {
+          guildId_userId: {
+            guildId: guild.id,
+            userId: me.id,
+          },
+        },
+      }),
+    ])
+
+    await Promise.all([
+      ...(!user
+        ? [
             prisma.user.create({
               data: {
                 id: me.id,
                 name: username,
                 avatar,
                 version: 1,
-                Guild: {
-                  connect: { discordId: id },
-                },
               },
             }),
-        ),
+          ]
+        : []),
+
+      ...(!guildToUser
+        ? [
+            prisma.guildToUser.create({
+              data: {
+                guildId: guild.id,
+                userId: me.id,
+              },
+            }),
+          ]
+        : []),
     ])
 
     const token = await new EncryptJWT({
@@ -121,7 +139,7 @@ export const app = route.get(
       httpOnly: true,
     })
 
-    cookie.set(COOKIE.USER_ID, user.id, {
+    cookie.set(COOKIE.USER_ID, me.id, {
       maxAge: expires_in,
       sameSite: "strict",
       secure: isProd(),

@@ -42,96 +42,102 @@ export const l = async (c: Context) => {
 
   const { g: guildId } = parse(JWTSchema, payload)
 
-  const guild = await prisma.guild.findUnique({
-    where: {
-      id: guildId,
-    },
-    include: {
-      User: {
-        where: {
-          // id: userId,
-          version: {
-            gt: prevVersion,
-          },
-          ...(prevVersion === 0 ? { deleted: false } : {}),
-        },
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          deleted: true,
-        },
+  const [guild, users] = await Promise.all([
+    prisma.guild.findUnique({
+      where: {
+        id: guildId,
       },
-      ClientGroup: {
-        where: {
-          id: clientGroupID,
-        },
-        include: {
-          Client: {
-            where: {
-              version: {
-                gt: prevVersion,
+      include: {
+        ClientGroup: {
+          where: {
+            id: clientGroupID,
+          },
+          include: {
+            Client: {
+              where: {
+                version: {
+                  gt: prevVersion,
+                },
+              },
+              select: {
+                id: true,
+                lastMutationID: true,
               },
             },
-            select: {
-              id: true,
-              lastMutationID: true,
+          },
+        },
+        Channel: {
+          where: {
+            version: {
+              gt: prevVersion,
             },
+            ...(prevVersion === 0 ? { deleted: false } : {}),
+          },
+          select: {
+            id: true,
+            type: true,
+            name: true,
+            parentId: true,
+            position: true,
+            discordId: true,
+            deleted: true,
+          },
+        },
+        Feed: {
+          where: {
+            version: {
+              gt: prevVersion,
+            },
+            ...(prevVersion === 0 ? { deleted: false } : {}),
+          },
+          select: {
+            id: true,
+            type: true,
+            value: true,
+            faviconUrl: true,
+            xmlUrl: true,
+            channelId: true,
+            order: true,
+            enabled: true,
+            deleted: true,
+          },
+        },
+        Webhook: {
+          where: {
+            version: {
+              gt: prevVersion,
+            },
+            ...(prevVersion === 0 ? { deleted: false } : {}),
+          },
+          select: {
+            id: true,
+            url: true,
+            channelId: true,
+            deleted: true,
           },
         },
       },
-      Channel: {
-        where: {
-          version: {
-            gt: prevVersion,
+    }),
+    prisma.user.findMany({
+      where: {
+        GuildToUser: {
+          some: {
+            guildId,
           },
-          ...(prevVersion === 0 ? { deleted: false } : {}),
         },
-        select: {
-          id: true,
-          type: true,
-          name: true,
-          parentId: true,
-          position: true,
-          discordId: true,
-          deleted: true,
+        version: {
+          gt: prevVersion,
         },
+        ...(prevVersion === 0 ? { deleted: false } : {}),
       },
-      Feed: {
-        where: {
-          version: {
-            gt: prevVersion,
-          },
-          ...(prevVersion === 0 ? { deleted: false } : {}),
-        },
-        select: {
-          id: true,
-          type: true,
-          value: true,
-          faviconUrl: true,
-          xmlUrl: true,
-          channelId: true,
-          order: true,
-          enabled: true,
-          deleted: true,
-        },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        deleted: true,
       },
-      Webhook: {
-        where: {
-          version: {
-            gt: prevVersion,
-          },
-          ...(prevVersion === 0 ? { deleted: false } : {}),
-        },
-        select: {
-          id: true,
-          url: true,
-          channelId: true,
-          deleted: true,
-        },
-      },
-    },
-  })
+    }),
+  ])
 
   if (!guild) {
     return json({ error: "Guild not found" })
@@ -140,7 +146,7 @@ export const l = async (c: Context) => {
   const clients = guild.ClientGroup[0]?.Client ?? []
   const channels = guild.Channel ?? []
   const feeds = guild.Feed ?? []
-  const users = guild.User ?? []
+  // const users = guild.User ?? []
   const webhooks = guild.Webhook ?? []
 
   const totalCount =

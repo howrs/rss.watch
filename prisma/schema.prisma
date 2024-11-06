@@ -8,23 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id String @id
-
-  name   String
-  avatar String?
-
-  version Int     @default(0)
-  deleted Boolean @default(false)
-
-  Guild Guild[]
-
-  ClientGroup ClientGroup[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Guild {
   id String @id
 
@@ -38,11 +21,43 @@ model Guild {
   ClientGroup ClientGroup[]
   Channel     Channel[]
   Feed        Feed[]
-  User        User[]
+  GuildToUser GuildToUser[]
   Webhook     Webhook[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model User {
+  id String @id
+
+  name   String
+  avatar String?
+
+  version Int     @default(0)
+  deleted Boolean @default(false)
+
+  GuildToUser GuildToUser[]
+
+  ClientGroup ClientGroup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([id, version])
+}
+
+model GuildToUser {
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([guildId, userId])
 }
 
 model ClientGroup {
@@ -74,7 +89,6 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([id, clientGroupId])
   @@index([version, clientGroupId])
 }
 
@@ -152,4 +166,8 @@ model Webhook {
 
   @@index([version, guildId])
   @@index([updatedAt])
+}
+
+model Sent {
+  hash Bytes @id
 }

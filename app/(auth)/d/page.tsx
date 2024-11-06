@@ -85,6 +85,7 @@ export default function Page() {
       id: uuid(),
       value,
       channelId: c,
+      enabled: true,
       order:
         feeds.length === 0
           ? 0
@@ -189,7 +190,7 @@ export default function Page() {
     <>
       <div className="flex flex-1 flex-col">
         <StatusBar />
-        <div className="flex w-full max-w-screen-md flex-1 flex-col self-center">
+        <div className="flex w-full max-w-screen-md flex-1 flex-col self-center font-mono">
           <Form {...form}>
             <form
               onSubmit={onSubmit}
@@ -198,7 +199,7 @@ export default function Page() {
               <Input
                 {...register("url")}
                 placeholder="example.com"
-                className="flex-1"
+                className="flex-1 text-xs"
                 autoComplete="off"
               />
               <Button className="" size="icon" variant="ghost">

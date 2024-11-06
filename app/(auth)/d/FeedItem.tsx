@@ -153,7 +153,7 @@ export function FeedItem({ k, i, feed }: Props) {
             height={64}
             alt={host}
           />
-          <span className="ml-2 line-clamp-1 select-none break-all text-sm">
+          <span className="ml-2 line-clamp-1 select-none break-all font-mono text-xs tracking-tighter">
             {feed.value}
           </span>
           <a

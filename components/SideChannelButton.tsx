@@ -29,7 +29,7 @@ export function SideChannelButton({ k, v }: Props) {
       asChild
       isActive={v.id === c}
       key={k}
-      className="flex cursor-default justify-start gap-1 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
+      className="flex cursor-default justify-start gap-1 font-mono text-xs hover:bg-sidebar-accent/60 active:bg-sidebar-accent/100"
     >
       <Link href={`/d#${g}${separator}${v.id}`}>
         <Hash className="h-4 w-4" />
@@ -38,14 +38,14 @@ export function SideChannelButton({ k, v }: Props) {
         <div className="flex gap-1.5">
           {numberOfDisabledFeeds > 0 && (
             <Badge
-              className="h-4 w-fit bg-red-400 px-1.5 font-bold"
+              className="h-4 w-fit bg-red-400 px-1.5 font-bold font-mono text-xs hover:bg-red-400"
               variant="default"
             >
               {numberOfDisabledFeeds}
             </Badge>
           )}
           <Badge
-            className="h-4 w-fit bg-green-400 px-1.5 font-bold"
+            className="h-4 w-fit bg-green-400 px-1.5 font-bold font-mono text-xs hover:bg-green-400"
             variant="default"
           >
             {numberOfEnabledFeeds}
