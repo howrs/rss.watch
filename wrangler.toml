@@ -9,8 +9,8 @@ NODE_VERSION = "22"
 
 [[d1_databases]]
 binding = "DB"                                       # i.e. available in your Worker on env.DB
-database_name = "rss-watch"
-database_id = "50baee97-6dd2-4ef5-a072-012a50965081"
+database_name = "rss-watch-prod"
+database_id = "407180e4-9256-4d3d-b1aa-4160461e9675"
 
 [placement]
 mode = "smart"
