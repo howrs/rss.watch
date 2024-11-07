@@ -1,10 +1,8 @@
-import "server-only"
-
 import { env } from "@/lib/env"
 import { APP_NAME } from "constants/urls"
 
 export const createWebhook = async (channelId: string): Promise<Webhook> => {
-  const data = await fetch(
+  const res = await fetch(
     `https://discord.com/api/v10/channels/${channelId}/webhooks`,
     {
       method: "POST",
@@ -16,7 +14,13 @@ export const createWebhook = async (channelId: string): Promise<Webhook> => {
         name: APP_NAME,
       }),
     },
-  ).then<Webhook>((r) => r.json())
+  )
+
+  if (!res.ok) {
+    throw new Error(`Failed to create webhook: ${res.status} ${res.statusText}`)
+  }
+
+  const data = await res.json<Webhook>()
 
   console.log(data)
 
@@ -32,7 +36,7 @@ export interface Webhook {
   name: string
   type: number
   user: User
-  token: string
+  token?: string
   url: string
 }
 

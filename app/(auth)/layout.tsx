@@ -7,11 +7,11 @@ import type { PropsWithChildren } from "react"
 type Props = PropsWithChildren
 
 export default function Layout({ children }: Props) {
-  const mounted = useMounted()
+  // const mounted = useMounted()
 
-  if (!mounted) {
-    return <FullScreenLoader />
-  }
+  // if (!mounted) {
+  //   return <FullScreenLoader />
+  // }
 
   return <>{children}</>
 }

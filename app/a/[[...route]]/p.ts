@@ -61,36 +61,36 @@ export const p = async (c: Context) => {
   const muts: Promise<Prisma.PrismaPromise<any>[]>[] = []
   const sqls: Prisma.PrismaPromise<any>[] = []
 
-  const guild = await prisma.guild.findUnique({
-    where: {
-      id: guildId,
-    },
-    include: {
-      ClientGroup: {
-        where: {
-          id: {
-            equals: clientGroupID,
-          },
-        },
-        include: {
-          Client: {
-            where: {
-              id: {
-                in: [...new Set(mutations.map((m) => m.clientID))],
-              },
-            },
+  const [guild, clients] = await Promise.all([
+    prisma.guild.findUnique({
+      where: {
+        id: guildId,
+      },
+      include: {
+        ClientGroup: {
+          where: {
+            id: clientGroupID,
+            guildId,
+            userId,
           },
         },
       },
-    },
-  })
+    }),
+
+    prisma.client.findMany({
+      where: {
+        id: {
+          in: [...new Set(mutations.map((m) => m.clientID))],
+        },
+      },
+    }),
+  ])
 
   if (!guild) {
     return c.json({ error: "Guild not found" })
   }
 
   const clientGroup = guild.ClientGroup[0] || defaultClientGroup
-  const clients = guild.ClientGroup[0]?.Client || []
 
   const indexedClients = pipe(
     clients,
@@ -187,7 +187,23 @@ export const p = async (c: Context) => {
           : prisma.client.create({
               data: {
                 id,
-                clientGroupId: clientGroup.id,
+                ClientGroup: {
+                  connectOrCreate: {
+                    where: {
+                      id: clientGroup.id,
+                      id_guildId_userId: {
+                        id: clientGroup.id,
+                        guildId,
+                        userId,
+                      },
+                    },
+                    create: {
+                      id: clientGroup.id,
+                      guildId,
+                      userId,
+                    },
+                  },
+                },
                 lastMutationID: lastMutationIDs.get(id) || 0,
                 version: nextVersion,
               },

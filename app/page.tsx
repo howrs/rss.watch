@@ -3,10 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { discordLogin } from "@/lib/discordLogin"
 import { getBaseURL } from "@/utils/getBaseURL"
+import { DISCORD_CLIENT_ID } from "constants/discord"
 import { REDIRECT_PATH } from "constants/urls"
 import { useRouter } from "next/navigation"
-
-const DISCORD_CLIENT_ID = `1280201575712948325`
 
 export default function Page() {
   const { push } = useRouter()

@@ -26,7 +26,7 @@ export const putChannel = async ({ guild, version, args }: Param) => {
             (webhook) => webhook.channel_id === args.discordId,
           )
 
-          return webhook ? webhook : await createWebhook(args.discordId)
+          return webhook?.url ? webhook : await createWebhook(args.discordId)
         })()
       : null
 

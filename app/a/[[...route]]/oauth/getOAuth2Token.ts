@@ -1,9 +1,8 @@
 import { getBaseURL } from "@/utils/getBaseURL"
+import { DISCORD_CLIENT_ID } from "constants/discord"
+import { DISCORD_CLIENT_SECRET } from "constants/secrets"
 import { REDIRECT_PATH } from "constants/urls"
 import { headers } from "next/headers"
-
-const CLIENT_SECRET = `ETIw0Ub_yNcbiuvD23CLv6IMlUpjEben`
-const CLIENT_ID = `1280201575712948325`
 
 export const getOAuth2Token = async (code: string) => {
   const h = await headers()
@@ -24,8 +23,8 @@ export const getOAuth2Token = async (code: string) => {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
+      client_id: DISCORD_CLIENT_ID,
+      client_secret: DISCORD_CLIENT_SECRET,
       grant_type: "authorization_code",
       code,
       redirect_uri: `${BASE_URL}${REDIRECT_PATH}`,

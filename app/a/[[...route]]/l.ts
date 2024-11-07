@@ -51,6 +51,7 @@ export const l = async (c: Context) => {
         ClientGroup: {
           where: {
             id: clientGroupID,
+            guildId,
           },
           include: {
             Client: {

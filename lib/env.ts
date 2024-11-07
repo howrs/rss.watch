@@ -1,3 +1,5 @@
+import "server-only"
+
 import { getRequestContext } from "@cloudflare/next-on-pages"
 
 export const env = new Proxy<CloudflareEnv>({} as CloudflareEnv, {

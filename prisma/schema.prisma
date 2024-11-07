@@ -61,7 +61,7 @@ model GuildToUser {
 }
 
 model ClientGroup {
-  id String @id
+  id String
 
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id])
@@ -74,7 +74,7 @@ model ClientGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([id, guildId])
+  @@id([id, guildId, userId])
 }
 
 model Client {
@@ -83,8 +83,10 @@ model Client {
   lastMutationID Int @default(0)
   version        Int @default(0)
 
-  clientGroupId String
-  clientGroup   ClientGroup @relation(fields: [clientGroupId], references: [id])
+  clientGroupId      String
+  clientGroupGuildId String
+  clientGroupUserId  String
+  ClientGroup        ClientGroup @relation(fields: [clientGroupId, clientGroupGuildId, clientGroupUserId], references: [id, guildId, userId])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,8 +1,5 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
-import { useChannel } from "@/hooks/useChannel"
 import { useFeeds } from "@/hooks/useFeeds"
 import { separator, useSearchParam } from "@/hooks/useSearchParams"
 import type { Channel } from "@prisma/client"
@@ -44,12 +41,14 @@ export function SideChannelButton({ k, v }: Props) {
               {numberOfDisabledFeeds}
             </Badge>
           )}
-          <Badge
-            className="h-4 w-fit bg-green-400 px-1.5 font-bold font-mono text-xs hover:bg-green-400"
-            variant="default"
-          >
-            {numberOfEnabledFeeds}
-          </Badge>
+          {numberOfEnabledFeeds > 0 && (
+            <Badge
+              className="h-4 w-fit bg-green-400 px-1.5 font-bold font-mono text-xs hover:bg-green-400"
+              variant="default"
+            >
+              {numberOfEnabledFeeds}
+            </Badge>
+          )}
         </div>
       </Link>
     </SidebarMenuButton>

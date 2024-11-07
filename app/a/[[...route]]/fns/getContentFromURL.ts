@@ -2,7 +2,7 @@ import { isServer } from "@/utils/isServer"
 import { identity } from "@fxts/core"
 import { ofetch } from "ofetch"
 
-const ENABLE_CACHE = true
+const ENABLE_CACHE = false
 
 export const getContentFromURL = async (url: string): Promise<string> => {
   let result: string | null = null

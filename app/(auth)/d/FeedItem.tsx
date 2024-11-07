@@ -1,10 +1,20 @@
 "use client"
 
+import { c } from "@/app/a/[[...route]]/hc"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Switch } from "@/components/ui/switch"
-import { useRCache } from "@/hooks/useRCache"
+import { useWebhook } from "@/hooks/useWebhook"
+import { m } from "@/lib/rc/RC"
+import { sendDiscordMessage } from "@/lib/sendDiscrodMessage"
 import { cn } from "@/lib/utils"
+import { getFaviconURLFromHost } from "@/utils/getFaviconURLFromHost"
 import {
   type Edge,
   attachClosestEdge,
@@ -19,11 +29,13 @@ import {
 import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview"
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview"
 import type { Feed } from "@prisma/client"
+import { queryOptions, useMutation, useQuery } from "@tanstack/react-query"
 import { Image } from "components/Image"
 import { ExternalLinkIcon, SendHorizontal, Trash } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { DeepReadonlyObject } from "replicache"
+import { toast } from "sonner"
 
 type Props = {
   k: string
@@ -40,8 +52,6 @@ const idleState: DraggableState = { type: "idle" }
 const draggingState: DraggableState = { type: "dragging" }
 
 export function FeedItem({ k, i, feed }: Props) {
-  const { m } = useRCache()
-
   const ref = useRef<HTMLLIElement>(null)
 
   const [closestEdge, setClosestEdge] = useState<Edge | null>(null)
@@ -125,6 +135,43 @@ export function FeedItem({ k, i, feed }: Props) {
 
   const host = new URL(`https://${feed.value}`).host
 
+  const { data } = useQuery(
+    queryOptions({
+      queryKey: ["feed", feed.id],
+      queryFn: async () => {
+        const a = await (
+          await c.feed.$get({ query: { url: feed.value } })
+        ).json()
+
+        return a.data.json || null
+      },
+      staleTime: Infinity,
+    }),
+  )
+
+  const hasPost = data && data?.items.length > 0
+
+  const { webhook } = useWebhook()
+
+  const { mutateAsync: send, isPending } = useMutation({
+    mutationFn: async (n: number) => {
+      const itemTitle = data?.items[n].title ?? ""
+      const itemLink = data?.items[n].url.replaceAll(" ", "%20") ?? ""
+
+      await sendDiscordMessage(webhook.url, {
+        username: (
+          data?.title
+            .replaceAll("Discord", "Dïscord")
+            .replaceAll("discord", "dïscord") ?? feed.value
+        ).slice(0, 80),
+        avatar_url: getFaviconURLFromHost(host),
+        content: `${itemLink}\n\n${itemTitle.trim()}`.slice(0, 2000),
+      })
+
+      toast("Sent!")
+    },
+  })
+
   return (
     <>
       <li
@@ -146,8 +193,8 @@ export function FeedItem({ k, i, feed }: Props) {
         />
         <div className="group flex h-full flex-1 items-center">
           <Image
-            key={`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${host}&size=64`}
-            src={`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${host}&size=64`}
+            key={getFaviconURLFromHost(host)}
+            src={getFaviconURLFromHost(host)}
             className="pointer-events-none h-5 w-5 rounded"
             width={64}
             height={64}
@@ -172,14 +219,44 @@ export function FeedItem({ k, i, feed }: Props) {
             m.putFeed({ ...feed, enabled })
           }}
         />
-        <Button
-          className="h-6 w-6 cursor-default"
-          variant="ghost"
-          size="icon"
-          onClick={async (e) => {}}
-        >
-          <SendHorizontal className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="h-6 w-6 cursor-default"
+              variant="ghost"
+              size="icon"
+              disabled={!hasPost || isPending}
+            >
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="flex min-w-60 max-w-md flex-col gap-1"
+          >
+            {data?.items.slice(0, 3).map((item, i) => (
+              <DropdownMenuItem key={`${item.title}-${item.url}`} asChild>
+                <Button
+                  className="flex cursor-default gap-4"
+                  variant="ghost"
+                  onClick={() => {
+                    send(i)
+                  }}
+                >
+                  <div className="flex flex-1 flex-col truncate text-left">
+                    <span className="truncate whitespace-pre text-sm">
+                      {item.title}
+                    </span>
+                    <span className="truncate text-[11px] leading-tight opacity-50">
+                      {item.url}
+                    </span>
+                  </div>
+                  <SendHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           className="h-6 w-6 cursor-default"
           variant="ghost"

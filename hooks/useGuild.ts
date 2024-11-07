@@ -1,5 +1,5 @@
 import { useData } from "@/hooks/useData"
-import { useSearchParam } from "@/hooks/useSearchParams"
+import { getSearchParams } from "@/hooks/useSearchParams"
 import type { Guild } from "@prisma/client"
 import { redirect } from "next/navigation"
 
@@ -8,11 +8,10 @@ export const useGuild = () => {
     return tx.get<Omit<Guild, "createdAt" | "updatedAt">>(`guild`)
   })
 
-  const { g } = useSearchParam()
-
-  if (guild && !g) {
-    redirect(`/d#${guild.id}`)
+  if (!guild) {
+    const { g } = getSearchParams()
+    redirect(`/d#${g}`)
   }
 
-  return { guild: guild! }
+  return { guild }
 }

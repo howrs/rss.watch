@@ -12,7 +12,7 @@ export const delChannel = async ({ guild, version, args }: Param) => {
     prisma.channel.updateMany({
       where: {
         id: args.split("/")[1],
-        guildId: guild.id,
+        // guildId: guild.id,
       },
       data: {
         deleted: true,

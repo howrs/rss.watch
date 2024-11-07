@@ -45,6 +45,8 @@ export const rep = (() => {
   return r
 })()
 
+export const m = rep.mutate
+
 // export const RC = memoize((g: string) => {
 //   const userId = Cookies.get(COOKIE.USER_ID)
 //   const name = `${g}:${userId}`

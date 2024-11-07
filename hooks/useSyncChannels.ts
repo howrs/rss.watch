@@ -1,6 +1,6 @@
 import { c } from "@/app/a/[[...route]]/hc"
 import { useChannels } from "@/hooks/useChannels"
-import { useRCache } from "@/hooks/useRCache"
+import { m } from "@/lib/rc/RC"
 import { nanoid } from "@/utils/ids"
 import {
   concurrent,
@@ -18,7 +18,6 @@ import { useQuery } from "@tanstack/react-query"
 import { isEqual } from "es-toolkit"
 
 export const useSyncChannels = () => {
-  const { m } = useRCache()
   const { channels } = useChannels()
 
   useQuery({

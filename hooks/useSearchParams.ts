@@ -1,4 +1,5 @@
 import { useHash } from "@/hooks/useHash"
+import { useMemo } from "react"
 
 export const separator = "/"
 
@@ -9,7 +10,7 @@ export const useSearchParam = () => {
   const g = s.split(separator)[0]
   const c = s.split(separator)[1]
 
-  return { g, c }
+  return useMemo(() => ({ g, c }), [hash])
 }
 
 export const getSearchParams = () => {

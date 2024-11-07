@@ -34,11 +34,13 @@ CREATE TABLE "GuildToUser" (
 
 -- CreateTable
 CREATE TABLE "ClientGroup" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
+
+    PRIMARY KEY ("id", "guildId", "userId"),
     CONSTRAINT "ClientGroup_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "ClientGroup_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -49,9 +51,11 @@ CREATE TABLE "Client" (
     "lastMutationID" INTEGER NOT NULL DEFAULT 0,
     "version" INTEGER NOT NULL DEFAULT 0,
     "clientGroupId" TEXT NOT NULL,
+    "clientGroupGuildId" TEXT NOT NULL,
+    "clientGroupUserId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Client_clientGroupId_fkey" FOREIGN KEY ("clientGroupId") REFERENCES "ClientGroup" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Client_clientGroupId_clientGroupGuildId_clientGroupUserId_fkey" FOREIGN KEY ("clientGroupId", "clientGroupGuildId", "clientGroupUserId") REFERENCES "ClientGroup" ("id", "guildId", "userId") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -114,9 +118,6 @@ CREATE UNIQUE INDEX "Guild_discordId_key" ON "Guild"("discordId");
 
 -- CreateIndex
 CREATE INDEX "User_id_version_idx" ON "User"("id", "version");
-
--- CreateIndex
-CREATE INDEX "ClientGroup_id_guildId_idx" ON "ClientGroup"("id", "guildId");
 
 -- CreateIndex
 CREATE INDEX "Client_version_clientGroupId_idx" ON "Client"("version", "clientGroupId");

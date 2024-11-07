@@ -15,6 +15,7 @@ export const useData = <R>(
     queryOptions<R>({
       queryKey,
       queryFn: () => rep.query(tx),
+      staleTime: Infinity,
     }),
   )
 

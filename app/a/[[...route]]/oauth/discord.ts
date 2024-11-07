@@ -1,4 +1,4 @@
-import { app as route } from "@/app/a/[[...route]]/guild"
+import { app as route } from "@/app/a/[[...route]]/feed"
 import { getMe } from "@/app/a/[[...route]]/oauth/getMe"
 import { getOAuth2Token } from "@/app/a/[[...route]]/oauth/getOAuth2Token"
 import { nanoid } from "@/utils/ids"

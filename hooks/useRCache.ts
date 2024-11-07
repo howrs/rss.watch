@@ -44,19 +44,19 @@ export const useRCache = () => {
 
       const r = rep
 
-      await new Promise((resolve) => {
-        const un = r.subscribe(
-          async (tx) => {
-            return tx.has("guild")
-          },
-          (r) => {
-            if (r) {
-              un()
-              resolve(r)
-            }
-          },
-        )
-      })
+      // await new Promise((resolve) => {
+      //   const un = r.subscribe(
+      //     async (tx) => {
+      //       return tx.has("guild")
+      //     },
+      //     (r) => {
+      //       if (r) {
+      //         un()
+      //         resolve(r)
+      //       }
+      //     },
+      //   )
+      // })
 
       return r
     },

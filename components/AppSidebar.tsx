@@ -1,5 +1,3 @@
-"use client"
-
 import { SideNav } from "@/components/SideNav"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,10 +15,8 @@ import {
   SidebarGroup,
   SidebarHeader,
   SidebarSeparator,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import { useMe } from "@/hooks/useMe"
-import { useSyncChannels } from "@/hooks/useSyncChannels"
 import { cookies } from "@/utils/cookie"
 import { Image } from "components/Image"
 import { COOKIE } from "constants/cookie"
@@ -31,8 +27,6 @@ export function AppSidebar() {
   const {
     me: { avatar, name, id },
   } = useMe()
-
-  useSyncChannels()
 
   return (
     <Sidebar
